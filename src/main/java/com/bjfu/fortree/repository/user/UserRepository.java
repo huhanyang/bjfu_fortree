@@ -1,0 +1,32 @@
+package com.bjfu.fortree.repository.user;
+
+import com.bjfu.fortree.entity.user.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+
+import javax.persistence.LockModeType;
+import java.util.Optional;
+
+/**
+ * 用户的持久接口
+ * @author warthog
+ */
+public interface UserRepository extends JpaRepository<User, Long> {
+
+    /**
+     * 根据账号查找用户实体
+     * @param account 账号
+     * @return 用户实体
+     */
+    Optional<User> findByAccount(String account);
+
+    /**
+     * 根据账号查找用户实体并加锁
+     * @param account 账号
+     * @return 用户实体
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query(value = "select user from User user where user.account=?1")
+    Optional<User> findByAccountForUpdate(String account);
+}

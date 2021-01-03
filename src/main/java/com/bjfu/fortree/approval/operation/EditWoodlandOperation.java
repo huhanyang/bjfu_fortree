@@ -1,0 +1,37 @@
+package com.bjfu.fortree.approval.operation;
+
+import com.alibaba.fastjson.JSONObject;
+import com.bjfu.fortree.entity.user.User;
+import com.bjfu.fortree.entity.woodland.Woodland;
+import com.bjfu.fortree.enums.ResultEnum;
+import com.bjfu.fortree.exception.ApprovedOperationException;
+import com.bjfu.fortree.repository.woodland.WoodlandRepository;
+import com.bjfu.fortree.request.woodland.EditWoodlandRequest;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.Optional;
+
+/**
+ * 编辑林地信息
+ * @author warthog
+ */
+@Component
+public class EditWoodlandOperation implements ApprovedOperation {
+
+    @Autowired
+    private WoodlandRepository woodlandRepository;
+
+    @Override
+    public void execute(String applyParam, User applyUser) {
+        EditWoodlandRequest editWoodlandRequest = JSONObject.parseObject(applyParam, EditWoodlandRequest.class);
+        Optional<Woodland> woodlandOptional = woodlandRepository.findByIdForUpdate(editWoodlandRequest.getWoodlandId());
+        if(woodlandOptional.isEmpty()) {
+            throw new ApprovedOperationException(ResultEnum.WOODLAND_NOT_EXIST);
+        }
+        Woodland woodland = woodlandOptional.get();
+        BeanUtils.copyProperties(editWoodlandRequest, woodland);
+        woodlandRepository.save(woodland);
+    }
+}
