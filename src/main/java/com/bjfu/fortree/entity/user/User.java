@@ -1,6 +1,7 @@
 package com.bjfu.fortree.entity.user;
 
 import com.bjfu.fortree.entity.BaseEntity;
+import com.bjfu.fortree.enums.entity.UserStateEnum;
 import com.bjfu.fortree.enums.entity.UserTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
@@ -44,6 +45,13 @@ public class User extends BaseEntity {
     @Enumerated
     @Column(nullable=false)
     private UserTypeEnum type;
+
+    /**
+     * 账号状态
+     */
+    @Enumerated
+    //@Column(nullable=false)
+    private UserStateEnum state;
 
     /**
      * 拥有的权限

@@ -24,7 +24,7 @@ public class CreateWoodlandRequest {
      * 样地地址
      */
     @NotBlank(message = "样地地址不能为空")
-    @Length(min = 1, max = 32, message = "样地地址长度1-32个字符")
+    @Length(min = 1, max = 64, message = "样地地址长度1-32个字符")
     private String address;
     /**
      * 样地中心经纬度

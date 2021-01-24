@@ -12,10 +12,6 @@ import javax.validation.constraints.NotBlank;
 @Data
 public class ChangePasswordRequest {
 
-    @NotBlank(message = "账号不能为空!")
-    @Length(min = 8, max = 32, message = "账号长度在8-32位!")
-    private String account;
-
     @NotBlank(message = "原密码不能为空!")
     @Length(min = 8, max = 32, message = "密码长度在8-32位!")
     private String oldPassword;

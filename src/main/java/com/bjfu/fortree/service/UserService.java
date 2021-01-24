@@ -1,8 +1,10 @@
 package com.bjfu.fortree.service;
 
 import com.bjfu.fortree.dto.user.UserDTO;
+import com.bjfu.fortree.dto.user.UserWithAuthoritiesAndWoodlandsDTO;
 import com.bjfu.fortree.dto.user.UserWithAuthoritiesDTO;
 import com.bjfu.fortree.request.user.*;
+import com.bjfu.fortree.vo.PageVO;
 
 /**
  * 用户相关操作
@@ -26,10 +28,18 @@ public interface UserService {
 
     /**
      * 修改密码
+     * @param userAccount 用户账号
      * @param changePasswordRequest 更改密码请求
      * @return 用户信息 账号密码不匹配则返回null
      */
-    UserDTO changePassword(ChangePasswordRequest changePasswordRequest);
+    UserDTO changePassword(String userAccount, ChangePasswordRequest changePasswordRequest);
+
+    /**
+     * 获取用户信息带有权限列表以及创建的林地列表
+     * @param userAccount 用户账号
+     * @return 用户信息 有权限列表以及创建的林地列表
+     */
+    UserWithAuthoritiesAndWoodlandsDTO getUserWithAuthoritiesAndWoodlands(String userAccount);
 
     /**
      * 为用户授权
@@ -44,4 +54,9 @@ public interface UserService {
      * @return 更新后的带有权限的用户信息
      */
     UserWithAuthoritiesDTO revokeUserAuthority(RevokeUserAuthorityRequest revokeUserAuthorityRequest);
+
+    /**
+     *
+     */
+    PageVO<UserDTO> getUsers(GetUsersRequest getUsersRequest);
 }

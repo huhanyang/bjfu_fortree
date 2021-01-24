@@ -1,11 +1,13 @@
 package com.bjfu.fortree.repository.woodland;
 
+import com.bjfu.fortree.entity.user.User;
 import com.bjfu.fortree.entity.woodland.Woodland;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
 import javax.persistence.LockModeType;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -22,5 +24,12 @@ public interface WoodlandRepository extends JpaRepository<Woodland, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query(value = "select woodland from Woodland woodland where woodland.id=?1")
     Optional<Woodland> findByIdForUpdate(Long id);
+
+    /**
+     * 根据创建人查找创建的林地
+     * @param creator 创建人
+     * @return 林地实体列表
+     */
+    List<Woodland> findByCreator(User creator);
 
 }

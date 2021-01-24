@@ -34,7 +34,7 @@ public class Woodland extends BaseEntity {
     /**
      * 样地地址
      */
-    @Column(length=32, nullable=false)
+    @Column(length=64, nullable=false)
     private String address;
     /**
      * 样地中心经纬度
