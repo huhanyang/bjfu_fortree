@@ -3,6 +3,7 @@ package com.bjfu.fortree.service;
 import com.bjfu.fortree.dto.user.UserDTO;
 import com.bjfu.fortree.dto.user.UserWithAuthoritiesAndWoodlandsDTO;
 import com.bjfu.fortree.dto.user.UserWithAuthoritiesDTO;
+import com.bjfu.fortree.enums.entity.UserStateEnum;
 import com.bjfu.fortree.request.user.*;
 import com.bjfu.fortree.vo.PageVO;
 
@@ -25,6 +26,13 @@ public interface UserService {
      * @return 带有权限的用户信息 账号已经存在则返回null
      */
     UserWithAuthoritiesDTO register(RegisterRequest registerRequest);
+
+    /**
+     * 获取用户信息
+     * @param userAccount 用户账号
+     * @return 带有权限的用户信息
+     */
+    UserWithAuthoritiesDTO getUserInfoWithAuthorities(String userAccount);
 
     /**
      * 修改密码
@@ -56,7 +64,16 @@ public interface UserService {
     UserWithAuthoritiesDTO revokeUserAuthority(RevokeUserAuthorityRequest revokeUserAuthorityRequest);
 
     /**
-     *
+     * 获取所有用户
+     * @param getUsersRequest 请求
+     * @return 分页后的用户
      */
     PageVO<UserDTO> getUsers(GetUsersRequest getUsersRequest);
+
+    /**
+     * 更改用户的状态
+     * @param changeUserStateRequest 请求
+     * @return 用户信息
+     */
+    UserDTO changeUserState(ChangeUserStateRequest changeUserStateRequest);
 }

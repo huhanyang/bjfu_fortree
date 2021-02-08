@@ -1,6 +1,7 @@
 package com.bjfu.fortree.dto.user;
 
 import com.bjfu.fortree.entity.user.User;
+import com.bjfu.fortree.enums.entity.UserStateEnum;
 import com.bjfu.fortree.enums.entity.UserTypeEnum;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
@@ -28,4 +29,8 @@ public class UserDTO {
      * 账号类型
      */
     private UserTypeEnum type;
+    /**
+     * 账号状态
+     */
+    private UserStateEnum state;
 }

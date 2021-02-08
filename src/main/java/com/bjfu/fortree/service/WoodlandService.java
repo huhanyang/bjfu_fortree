@@ -1,7 +1,10 @@
 package com.bjfu.fortree.service;
 
 import com.bjfu.fortree.dto.job.ApplyJobDTO;
+import com.bjfu.fortree.dto.woodland.WoodlandDTO;
+import com.bjfu.fortree.dto.woodland.WoodlandDetailDTO;
 import com.bjfu.fortree.request.woodland.*;
+import com.bjfu.fortree.vo.PageVO;
 
 /**
  * 林地相关操作
@@ -72,5 +75,20 @@ public interface WoodlandService {
      * @return 申请实体
      */
     ApplyJobDTO editRecord(String userAccount, EditRecordRequest editRecordRequest);
+
+    /**
+     * 根据创建人获取林地
+     * @param userAccount 用户账号
+     * @param getWoodlandByCreatorRequest 请求
+     * @return 分页后的林地实体
+     */
+    PageVO<WoodlandDTO> getWoodlandByCreator(String userAccount, GetWoodlandByCreatorRequest getWoodlandByCreatorRequest);
+
+    /**
+     * 获取林地详细信息
+     * @param woodlandId 林地id
+     * @return 林地详细信息
+     */
+    WoodlandDetailDTO getWoodlandDetail(Long woodlandId);
 
 }

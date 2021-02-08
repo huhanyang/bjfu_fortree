@@ -58,12 +58,12 @@ public class CreateWoodlandRequest {
      * 长度
      */
     @NotNull(message = "样地长度不能为空")
-    private Integer length;
+    private Double length;
     /**
      * 宽度
      */
     @NotNull(message = "样地宽度不能为空")
-    private Integer width;
+    private Double width;
     /**
      * 附加信息(JSON)
      */

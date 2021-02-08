@@ -48,12 +48,12 @@ public class AddTreesRequest {
          * 胸径
          */
         @NotNull(message = "树高不能为空")
-        private Integer height;
+        private Double height;
         /**
          * 冠幅
          */
         @NotNull(message = "冠幅不能为空")
-        private Integer crownDiameter;
+        private Double crownDiameter;
         /**
          * 附加信息(JSON)
          */

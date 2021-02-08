@@ -34,15 +34,15 @@ public class Tree extends BaseEntity {
     @Column(length=32, nullable=false)
     private String species;
     /**
-     * 胸径
+     * 胸径 厘米
      */
     @Column(nullable=false)
-    private Integer height;
+    private Double height;
     /**
-     * 冠幅
+     * 冠幅 厘米
      */
     @Column(nullable=false)
-    private Integer crownDiameter;
+    private Double crownDiameter;
 
     /**
      * 附加信息(JSON)

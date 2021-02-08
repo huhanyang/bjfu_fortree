@@ -50,7 +50,7 @@ public class User extends BaseEntity {
      * 账号状态
      */
     @Enumerated
-    //@Column(nullable=false)
+    @Column(nullable=false)
     private UserStateEnum state;
 
     /**

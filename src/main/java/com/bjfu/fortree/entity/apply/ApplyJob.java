@@ -6,7 +6,6 @@ import com.bjfu.fortree.enums.entity.ApplyJobStateEnum;
 import com.bjfu.fortree.enums.entity.ApplyJobTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
-import org.checkerframework.checker.units.qual.A;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -66,6 +65,9 @@ public class ApplyJob extends BaseEntity {
         applyJob.setType(type);
         applyJob.setApplyParam(applyParam);
         applyJob.setState(ApplyJobStateEnum.APPLYING);
+        applyJob.setOperateUser(applyUser);
+        applyJob.setMsg("申请中");
+        applyJob.setOperateTime(new Date());
         return applyJob;
     }
 

@@ -3,6 +3,7 @@ package com.bjfu.fortree.repository.woodland;
 import com.bjfu.fortree.entity.user.User;
 import com.bjfu.fortree.entity.woodland.Woodland;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
@@ -14,7 +15,7 @@ import java.util.Optional;
  * 林地的持久接口
  * @author warthog
  */
-public interface WoodlandRepository extends JpaRepository<Woodland, Long> {
+public interface WoodlandRepository extends JpaRepository<Woodland, Long>, JpaSpecificationExecutor<Woodland> {
 
     /**
      * 根据id查找林地实体

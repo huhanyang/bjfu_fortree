@@ -19,8 +19,14 @@ public class ApplyJobVO {
     public ApplyJobVO(ApplyJobDTO applyJobDTO) {
         BeanUtils.copyProperties(applyJobDTO, this);
         this.applyUser = new UserVO(applyJobDTO.getApplyUser());
-        this.operateUser = new UserVO(applyJobDTO.getOperateUser());
+        if(applyJobDTO.getOperateUser() != null) {
+            this.operateUser = new UserVO(applyJobDTO.getOperateUser());
+        }
     }
+    /**
+     * 主键
+     */
+    private Long id;
     /**
      * 申请类型
      */
@@ -41,6 +47,14 @@ public class ApplyJobVO {
      * 状态操作人
      */
     private UserVO operateUser;
+    /**
+     * 状态变更信息
+     */
+    private String msg;
+    /**
+     * 创建时间
+     */
+    private Date createdTime;
     /**
      * 申请通过/未通过的时间
      */

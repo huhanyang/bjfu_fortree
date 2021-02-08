@@ -27,17 +27,17 @@ public class AddRecordRequest {
      * 最大树高
      */
     @NotNull(message = "最大树高不能为空")
-    private Integer maxHeight;
+    private Double maxHeight;
     /**
      * 最小树高
      */
     @NotNull(message = "最小树高不能为空")
-    private Integer minHeight;
+    private Double minHeight;
     /**
      * 平均树高
      */
     @NotNull(message = "平均树高不能为空")
-    private Integer meanHeight;
+    private Double meanHeight;
     /**
      * 测量时间
      */

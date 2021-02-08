@@ -35,20 +35,20 @@ public class Record extends BaseEntity {
     @Column(nullable=false)
     private Integer treeCount;
     /**
-     * 最大树高
+     * 最大树高 厘米
      */
     @Column(nullable=false)
-    private Integer maxHeight;
+    private Double maxHeight;
     /**
-     * 最小树高
+     * 最小树高 厘米
      */
     @Column(nullable=false)
-    private Integer minHeight;
+    private Double minHeight;
     /**
-     * 平均树高
+     * 平均树高 厘米
      */
     @Column(nullable=false)
-    private Integer meanHeight;
+    private Double meanHeight;
     /**
      * 测量时间
      */

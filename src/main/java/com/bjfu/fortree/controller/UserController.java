@@ -14,11 +14,14 @@ import com.bjfu.fortree.vo.PageVO;
 import com.bjfu.fortree.vo.user.UserVO;
 import com.bjfu.fortree.vo.user.UserWithAuthoritiesAndWoodlandsVO;
 import com.bjfu.fortree.vo.user.UserWithAuthoritiesVO;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+import javax.validation.constraints.NotBlank;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -64,20 +67,30 @@ public class UserController {
     }
 
     @RequireLogin
-    @GetMapping("/getUserInfo")
-    public BaseResult<UserWithAuthoritiesVO> getUserInfo(HttpSession session) {
-        return new BaseResult<>(ResultEnum.SUCCESS, new UserWithAuthoritiesVO(SessionUtil.getUserInfo(session)));
+    @GetMapping("/getInfoWithAuthorities")
+    public BaseResult<UserWithAuthoritiesVO> getInfoWithAuthorities(HttpSession session) {
+        UserWithAuthoritiesDTO userWithAuthoritiesDTO =
+                userService.getUserInfoWithAuthorities(SessionUtil.getUserInfo(session).getAccount());
+        return new BaseResult<>(ResultEnum.SUCCESS, new UserWithAuthoritiesVO(userWithAuthoritiesDTO));
     }
 
     @RequireLogin
-    @GetMapping("/getUserInfoWithAuthoritiesAndWoodlands")
-    public BaseResult<UserWithAuthoritiesAndWoodlandsVO> getUserInfoWithAuthoritiesAndWoodlands(HttpSession session) {
+    @GetMapping("/getInfoWithAuthoritiesAndWoodlands")
+    public BaseResult<UserWithAuthoritiesAndWoodlandsVO> getInfoWithAuthoritiesAndWoodlands(HttpSession session) {
         UserWithAuthoritiesAndWoodlandsDTO userWithAuthoritiesAndWoodlands =
                 userService.getUserWithAuthoritiesAndWoodlands(SessionUtil.getUserInfo(session).getAccount());
         return new BaseResult<>(ResultEnum.SUCCESS, new UserWithAuthoritiesAndWoodlandsVO(userWithAuthoritiesAndWoodlands));
     }
 
     @RequireLogin
+    @GetMapping("/getUserInfoWithAuthorities")
+    public BaseResult<UserWithAuthoritiesVO> getUserInfoWithAuthorities(@NotBlank(message = "账号不能为空!")
+                                                                        @Length(min = 8, max = 32, message = "账号长度在8-32位!")
+                                                                        String account) {
+        UserWithAuthoritiesDTO userWithAuthoritiesDTO = userService.getUserInfoWithAuthorities(account);
+        return new BaseResult<>(ResultEnum.SUCCESS, new UserWithAuthoritiesVO(userWithAuthoritiesDTO));
+    }
+
     @GetMapping("/logout")
     public BaseResult<Void> logout(HttpSession session) {
         SessionUtil.deleteSession(session);
@@ -85,7 +98,7 @@ public class UserController {
     }
 
     @RequireAdmin
-    @PutMapping("/grantUserAuthority")
+    @PostMapping("/grantUserAuthority")
     public BaseResult<UserWithAuthoritiesVO> grantUserAuthority(@Validated @RequestBody GrantUserAuthorityRequest grantUserAuthorityRequest) {
         UserWithAuthoritiesDTO userWithAuthoritiesDTO =
                 userService.grantUserAuthority(grantUserAuthorityRequest);
@@ -93,7 +106,7 @@ public class UserController {
     }
 
     @RequireAdmin
-    @DeleteMapping("/revokeUserAuthority")
+    @PostMapping("/revokeUserAuthority")
     public BaseResult<UserWithAuthoritiesVO> revokeUserAuthority(@Validated @RequestBody RevokeUserAuthorityRequest revokeUserAuthorityRequest) {
         UserWithAuthoritiesDTO userWithAuthoritiesDTO =
                 userService.revokeUserAuthority(revokeUserAuthorityRequest);
@@ -104,12 +117,22 @@ public class UserController {
     @PostMapping("/getUsers")
     public BaseResult<PageVO<UserVO>> getUsers(@Validated @RequestBody GetUsersRequest getUsersRequest) {
         PageVO<UserDTO> users = userService.getUsers(getUsersRequest);
-        PageVO<UserVO> pageVO = new PageVO<>();
-        pageVO.setContents(users.getContents().stream()
+        List<UserVO> userVOList = users.getContents().stream()
                 .map(UserVO::new)
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList());
+        PageVO<UserVO> pageVO = new PageVO<>(users.getCount(), userVOList);
         return new BaseResult<>(ResultEnum.SUCCESS, pageVO);
     }
 
+    @RequireAdmin
+    @PostMapping("/changeUserState")
+    public BaseResult<UserVO> changeUserState(@Validated @RequestBody ChangeUserStateRequest changeUserStateRequest,
+                                              HttpSession session) {
+        if(SessionUtil.getUserInfo(session).getAccount().equals(changeUserStateRequest.getAccount())) {
+            return new BaseResult<>(ResultEnum.PARAM_WRONG.getCode(), "不允许操作自己账号的状态");
+        }
+        UserDTO userDTO = userService.changeUserState(changeUserStateRequest);
+        return new BaseResult<>(ResultEnum.SUCCESS, new UserVO(userDTO));
+    }
 
 }

@@ -63,15 +63,15 @@ public class Woodland extends BaseEntity {
     @Column(nullable=false)
     private WoodlandShapeEnum shape;
     /**
-     * 长度
+     * 长度 米
      */
     @Column(nullable=false)
-    private Integer length;
+    private Double length;
     /**
-     * 宽度
+     * 宽度 米
      */
     @Column(nullable=false)
-    private Integer width;
+    private Double width;
     /**
      * 附加信息(JSON)
      */

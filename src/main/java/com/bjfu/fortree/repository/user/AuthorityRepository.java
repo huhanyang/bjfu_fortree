@@ -19,4 +19,11 @@ public interface AuthorityRepository extends JpaRepository<Authority, Long> {
      */
     boolean existsByUserAndType(User user, AuthorityTypeEnum type);
 
+    /**
+     * 根据用户和类型判断权限删除
+     * @param user 用户实体
+     * @param type 权限类型枚举
+     */
+    void deleteByUserAndType(User user, AuthorityTypeEnum type);
+
 }

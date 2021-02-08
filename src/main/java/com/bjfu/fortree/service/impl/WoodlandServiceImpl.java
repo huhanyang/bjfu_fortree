@@ -3,6 +3,8 @@ package com.bjfu.fortree.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.bjfu.fortree.approval.ApprovedOperationDispatch;
 import com.bjfu.fortree.dto.job.ApplyJobDTO;
+import com.bjfu.fortree.dto.woodland.WoodlandDTO;
+import com.bjfu.fortree.dto.woodland.WoodlandDetailDTO;
 import com.bjfu.fortree.entity.apply.ApplyJob;
 import com.bjfu.fortree.entity.user.User;
 import com.bjfu.fortree.entity.woodland.Record;
@@ -11,6 +13,7 @@ import com.bjfu.fortree.entity.woodland.Woodland;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.enums.entity.ApplyJobTypeEnum;
 import com.bjfu.fortree.enums.entity.AuthorityTypeEnum;
+import com.bjfu.fortree.enums.entity.UserTypeEnum;
 import com.bjfu.fortree.exception.SystemWrongException;
 import com.bjfu.fortree.exception.WrongParamException;
 import com.bjfu.fortree.repository.job.ApplyJobRepository;
@@ -21,11 +24,20 @@ import com.bjfu.fortree.repository.woodland.TreeRepository;
 import com.bjfu.fortree.repository.woodland.WoodlandRepository;
 import com.bjfu.fortree.request.woodland.*;
 import com.bjfu.fortree.service.WoodlandService;
+import com.bjfu.fortree.vo.PageVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
+import javax.persistence.criteria.Predicate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class WoodlandServiceImpl implements WoodlandService {
@@ -293,6 +305,52 @@ public class WoodlandServiceImpl implements WoodlandService {
             applyJobRepository.save(apply);
             return new ApplyJobDTO(apply);
         }
+    }
+
+    @Override
+    public PageVO<WoodlandDTO> getWoodlandByCreator(String userAccount, GetWoodlandByCreatorRequest getWoodlandByCreatorRequest) {
+        Optional<User> userOptional = userRepository.findByAccount(userAccount);
+        if(userOptional.isEmpty()) {
+            throw new SystemWrongException(ResultEnum.USER_SESSION_WRONG);
+        }
+        User user = userOptional.get();
+        PageRequest pageRequest = PageRequest.of(getWoodlandByCreatorRequest.getCurrent() - 1, getWoodlandByCreatorRequest.getPageSize());
+        if(getWoodlandByCreatorRequest.getField() != null) {
+            Sort sort = Sort.by(new Sort.Order(getWoodlandByCreatorRequest.getOrder(), getWoodlandByCreatorRequest.getField()));
+            pageRequest = PageRequest.of(getWoodlandByCreatorRequest.getCurrent() - 1, getWoodlandByCreatorRequest.getPageSize(), sort);
+        }
+        Page<Woodland> woodlands = woodlandRepository.findAll((root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (!CollectionUtils.isEmpty(getWoodlandByCreatorRequest.getName())) {
+                predicates.add(cb.like(root.get("name"), "%" + getWoodlandByCreatorRequest.getName().get(0) + "%"));
+            }
+            if (!CollectionUtils.isEmpty(getWoodlandByCreatorRequest.getCountry())) {
+                predicates.add(cb.like(root.get("country"), "%" + getWoodlandByCreatorRequest.getCountry().get(0) + "%"));
+            }
+            if (!CollectionUtils.isEmpty(getWoodlandByCreatorRequest.getProvince())) {
+                predicates.add(cb.like(root.get("province"), "%" + getWoodlandByCreatorRequest.getProvince().get(0) + "%"));
+            }
+            if (!CollectionUtils.isEmpty(getWoodlandByCreatorRequest.getCity())) {
+                predicates.add(cb.like(root.get("city"), "%" + getWoodlandByCreatorRequest.getCity().get(0) + "%"));
+            }
+            if(!user.getType().equals(UserTypeEnum.ADMIN)) {
+                predicates.add(cb.equal(root.get("creator"), user));
+            }
+            return query.where(predicates.toArray(new Predicate[0])).getRestriction();
+        }, pageRequest);
+        List<WoodlandDTO> woodlandDTOList = woodlands.getContent().stream().map(WoodlandDTO::new).collect(Collectors.toList());
+        return new PageVO<>(woodlands.getTotalElements(), woodlandDTOList);
+    }
+
+    @Override
+    @Transactional
+    public WoodlandDetailDTO getWoodlandDetail(Long woodlandId) {
+        Optional<Woodland> woodlandOptional = woodlandRepository.findById(woodlandId);
+        if(woodlandOptional.isEmpty()) {
+            throw new WrongParamException(ResultEnum.WOODLAND_NOT_EXIST);
+        }
+        Woodland woodland = woodlandOptional.get();
+        return new WoodlandDetailDTO(woodland);
     }
 
 }

@@ -3,6 +3,7 @@ package com.bjfu.fortree.repository.job;
 import com.bjfu.fortree.entity.apply.ApplyJob;
 import com.bjfu.fortree.entity.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
@@ -14,7 +15,7 @@ import java.util.Optional;
  * 申请实体的持久接口
  * @author warthog
  */
-public interface ApplyJobRepository extends JpaRepository<ApplyJob, Long> {
+public interface ApplyJobRepository extends JpaRepository<ApplyJob, Long>, JpaSpecificationExecutor<ApplyJob> {
 
     /**
      * 根据id查找并加锁
