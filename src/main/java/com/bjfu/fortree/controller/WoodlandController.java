@@ -107,19 +107,36 @@ public class WoodlandController {
     }
 
     @RequireLogin
-    @PostMapping("/getWoodlandByCreator")
-    public BaseResult<PageVO<WoodlandVO>> getWoodlandByCreator(@Validated @RequestBody GetWoodlandByCreatorRequest getWoodlandByCreatorRequest, HttpSession session) {
-        String userAccount = SessionUtil.getUserInfo(session).getAccount();
-        PageVO<WoodlandDTO> woodlandDTOPageVO= woodlandService.getWoodlandByCreator(userAccount, getWoodlandByCreatorRequest);
+    @PostMapping("/getWoodlands")
+    public BaseResult<PageVO<WoodlandVO>> getWoodlands(@Validated @RequestBody GetWoodlandsRequest getWoodlandsRequest) {
+        PageVO<WoodlandDTO> woodlandDTOPageVO= woodlandService.getWoodlands(getWoodlandsRequest);
         List<WoodlandVO> woodlandVOS = woodlandDTOPageVO.getContents().stream().map(WoodlandVO::new).collect(Collectors.toList());
         return new BaseResult<>(ResultEnum.SUCCESS, new PageVO<>(woodlandDTOPageVO.getCount(), woodlandVOS));
     }
 
     @RequireLogin
+    @PostMapping("/getWoodlandsByCreator")
+    public BaseResult<PageVO<WoodlandVO>> getWoodlandsByCreator(@Validated @RequestBody GetWoodlandsByCreatorRequest getWoodlandsByCreatorRequest, HttpSession session) {
+        String userAccount = SessionUtil.getUserInfo(session).getAccount();
+        PageVO<WoodlandDTO> woodlandDTOPageVO= woodlandService.getWoodlandsByCreator(userAccount, getWoodlandsByCreatorRequest);
+        List<WoodlandVO> woodlandVOS = woodlandDTOPageVO.getContents().stream().map(WoodlandVO::new).collect(Collectors.toList());
+        return new BaseResult<>(ResultEnum.SUCCESS, new PageVO<>(woodlandDTOPageVO.getCount(), woodlandVOS));
+    }
+
+
     @GetMapping("/getWoodlandDetail")
     public BaseResult<WoodlandDetailVO> getWoodlandDetail(@NotNull(message = "林地id不能为空!") Long id) {
         WoodlandDetailDTO woodlandDetail = woodlandService.getWoodlandDetail(id);
         return new BaseResult<>(ResultEnum.SUCCESS, new WoodlandDetailVO(woodlandDetail));
+    }
+
+    @GetMapping("/getWoodlandsInRectangleBounds")
+    public BaseResult<List<WoodlandVO>> getWoodlands(@Validated GetWoodlandsInRectangleBoundsRequest getWoodlandsInRectangleBoundsRequest) {
+        List<WoodlandVO> woodlandVOS = woodlandService.getWoodlandsInRectangleBounds(getWoodlandsInRectangleBoundsRequest)
+                .stream()
+                .map(WoodlandVO::new)
+                .collect(Collectors.toList());
+        return new BaseResult<>(ResultEnum.SUCCESS, woodlandVOS);
     }
 
 }

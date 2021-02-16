@@ -2,6 +2,7 @@ package com.bjfu.fortree.vo.woodland;
 
 import com.bjfu.fortree.dto.user.UserDTO;
 import com.bjfu.fortree.dto.woodland.WoodlandDTO;
+import com.bjfu.fortree.spatial.G2DPoint;
 import com.bjfu.fortree.vo.user.UserVO;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
@@ -23,6 +24,10 @@ public class WoodlandVO {
      * 样地名称
      */
     private String name;
+    /**
+     * 样地中心经纬度
+     */
+    private G2DPoint position;
     /**
      * 创建人
      */

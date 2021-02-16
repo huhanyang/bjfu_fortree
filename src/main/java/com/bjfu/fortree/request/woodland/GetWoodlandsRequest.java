@@ -10,7 +10,7 @@ import java.util.List;
  * @author warthog
  */
 @Data
-public class GetWoodlandByCreatorRequest {
+public class GetWoodlandsRequest {
     //分页
     @NotNull(message = "分页当前页数不能为空")
     private Integer current;

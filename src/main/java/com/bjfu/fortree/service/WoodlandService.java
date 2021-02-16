@@ -6,6 +6,8 @@ import com.bjfu.fortree.dto.woodland.WoodlandDetailDTO;
 import com.bjfu.fortree.request.woodland.*;
 import com.bjfu.fortree.vo.PageVO;
 
+import java.util.List;
+
 /**
  * 林地相关操作
  * @author warthog
@@ -77,12 +79,19 @@ public interface WoodlandService {
     ApplyJobDTO editRecord(String userAccount, EditRecordRequest editRecordRequest);
 
     /**
-     * 根据创建人获取林地
-     * @param userAccount 用户账号
-     * @param getWoodlandByCreatorRequest 请求
-     * @return 分页后的林地实体
+     * 获取林地列表
+     * @param getWoodlandsRequest 请求
+     * @return 分页后的林地实体列表
      */
-    PageVO<WoodlandDTO> getWoodlandByCreator(String userAccount, GetWoodlandByCreatorRequest getWoodlandByCreatorRequest);
+    PageVO<WoodlandDTO> getWoodlands(GetWoodlandsRequest getWoodlandsRequest);
+
+    /**
+     * 根据创建人获取林地列表
+     * @param userAccount 用户账号
+     * @param getWoodlandsByCreatorRequest 请求
+     * @return 分页后的林地实体列表
+     */
+    PageVO<WoodlandDTO> getWoodlandsByCreator(String userAccount, GetWoodlandsByCreatorRequest getWoodlandsByCreatorRequest);
 
     /**
      * 获取林地详细信息
@@ -90,5 +99,12 @@ public interface WoodlandService {
      * @return 林地详细信息
      */
     WoodlandDetailDTO getWoodlandDetail(Long woodlandId);
+
+    /**
+     * 获取矩形范围内的林地列表
+     * @param getWoodlandsInRectangleBoundsRequest 请求
+     * @return 林地列表
+     */
+    List<WoodlandDTO> getWoodlandsInRectangleBounds(GetWoodlandsInRectangleBoundsRequest getWoodlandsInRectangleBoundsRequest);
 
 }

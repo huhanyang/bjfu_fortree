@@ -25,6 +25,11 @@ import com.bjfu.fortree.repository.woodland.WoodlandRepository;
 import com.bjfu.fortree.request.woodland.*;
 import com.bjfu.fortree.service.WoodlandService;
 import com.bjfu.fortree.vo.PageVO;
+import org.geolatte.geom.G2D;
+import org.geolatte.geom.Polygon;
+import org.geolatte.geom.PositionSequence;
+import org.geolatte.geom.PositionSequenceBuilders;
+import org.geolatte.geom.crs.CrsRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -55,7 +60,10 @@ public class WoodlandServiceImpl implements WoodlandService {
     @Autowired
     private ApplyJobRepository applyJobRepository;
     @Autowired
-    ApprovedOperationDispatch approvedOperationDispatch;
+    private ApprovedOperationDispatch approvedOperationDispatch;
+
+
+    private static final String POLYGON_WKT_FORMAT = "POLYGON((%f %f,%f %f,%f %f,%f %f,%f %f))";
 
     @Override
     @Transactional(rollbackFor = RuntimeException.class)
@@ -308,30 +316,57 @@ public class WoodlandServiceImpl implements WoodlandService {
     }
 
     @Override
-    public PageVO<WoodlandDTO> getWoodlandByCreator(String userAccount, GetWoodlandByCreatorRequest getWoodlandByCreatorRequest) {
+    public PageVO<WoodlandDTO> getWoodlands(GetWoodlandsRequest getWoodlandsRequest) {
+        PageRequest pageRequest = PageRequest.of(getWoodlandsRequest.getCurrent() - 1, getWoodlandsRequest.getPageSize());
+        if(getWoodlandsRequest.getField() != null) {
+            Sort sort = Sort.by(new Sort.Order(getWoodlandsRequest.getOrder(), getWoodlandsRequest.getField()));
+            pageRequest = PageRequest.of(getWoodlandsRequest.getCurrent() - 1, getWoodlandsRequest.getPageSize(), sort);
+        }
+        Page<Woodland> woodlands = woodlandRepository.findAll((root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (!CollectionUtils.isEmpty(getWoodlandsRequest.getName())) {
+                predicates.add(cb.like(root.get("name"), "%" + getWoodlandsRequest.getName().get(0) + "%"));
+            }
+            if (!CollectionUtils.isEmpty(getWoodlandsRequest.getCountry())) {
+                predicates.add(cb.like(root.get("country"), "%" + getWoodlandsRequest.getCountry().get(0) + "%"));
+            }
+            if (!CollectionUtils.isEmpty(getWoodlandsRequest.getProvince())) {
+                predicates.add(cb.like(root.get("province"), "%" + getWoodlandsRequest.getProvince().get(0) + "%"));
+            }
+            if (!CollectionUtils.isEmpty(getWoodlandsRequest.getCity())) {
+                predicates.add(cb.like(root.get("city"), "%" + getWoodlandsRequest.getCity().get(0) + "%"));
+            }
+            return query.where(predicates.toArray(new Predicate[0])).getRestriction();
+        }, pageRequest);
+        List<WoodlandDTO> woodlandDTOList = woodlands.getContent().stream().map(WoodlandDTO::new).collect(Collectors.toList());
+        return new PageVO<>(woodlands.getTotalElements(), woodlandDTOList);
+    }
+
+    @Override
+    public PageVO<WoodlandDTO> getWoodlandsByCreator(String userAccount, GetWoodlandsByCreatorRequest getWoodlandsByCreatorRequest) {
         Optional<User> userOptional = userRepository.findByAccount(userAccount);
         if(userOptional.isEmpty()) {
             throw new SystemWrongException(ResultEnum.USER_SESSION_WRONG);
         }
         User user = userOptional.get();
-        PageRequest pageRequest = PageRequest.of(getWoodlandByCreatorRequest.getCurrent() - 1, getWoodlandByCreatorRequest.getPageSize());
-        if(getWoodlandByCreatorRequest.getField() != null) {
-            Sort sort = Sort.by(new Sort.Order(getWoodlandByCreatorRequest.getOrder(), getWoodlandByCreatorRequest.getField()));
-            pageRequest = PageRequest.of(getWoodlandByCreatorRequest.getCurrent() - 1, getWoodlandByCreatorRequest.getPageSize(), sort);
+        PageRequest pageRequest = PageRequest.of(getWoodlandsByCreatorRequest.getCurrent() - 1, getWoodlandsByCreatorRequest.getPageSize());
+        if(getWoodlandsByCreatorRequest.getField() != null) {
+            Sort sort = Sort.by(new Sort.Order(getWoodlandsByCreatorRequest.getOrder(), getWoodlandsByCreatorRequest.getField()));
+            pageRequest = PageRequest.of(getWoodlandsByCreatorRequest.getCurrent() - 1, getWoodlandsByCreatorRequest.getPageSize(), sort);
         }
         Page<Woodland> woodlands = woodlandRepository.findAll((root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            if (!CollectionUtils.isEmpty(getWoodlandByCreatorRequest.getName())) {
-                predicates.add(cb.like(root.get("name"), "%" + getWoodlandByCreatorRequest.getName().get(0) + "%"));
+            if (!CollectionUtils.isEmpty(getWoodlandsByCreatorRequest.getName())) {
+                predicates.add(cb.like(root.get("name"), "%" + getWoodlandsByCreatorRequest.getName().get(0) + "%"));
             }
-            if (!CollectionUtils.isEmpty(getWoodlandByCreatorRequest.getCountry())) {
-                predicates.add(cb.like(root.get("country"), "%" + getWoodlandByCreatorRequest.getCountry().get(0) + "%"));
+            if (!CollectionUtils.isEmpty(getWoodlandsByCreatorRequest.getCountry())) {
+                predicates.add(cb.like(root.get("country"), "%" + getWoodlandsByCreatorRequest.getCountry().get(0) + "%"));
             }
-            if (!CollectionUtils.isEmpty(getWoodlandByCreatorRequest.getProvince())) {
-                predicates.add(cb.like(root.get("province"), "%" + getWoodlandByCreatorRequest.getProvince().get(0) + "%"));
+            if (!CollectionUtils.isEmpty(getWoodlandsByCreatorRequest.getProvince())) {
+                predicates.add(cb.like(root.get("province"), "%" + getWoodlandsByCreatorRequest.getProvince().get(0) + "%"));
             }
-            if (!CollectionUtils.isEmpty(getWoodlandByCreatorRequest.getCity())) {
-                predicates.add(cb.like(root.get("city"), "%" + getWoodlandByCreatorRequest.getCity().get(0) + "%"));
+            if (!CollectionUtils.isEmpty(getWoodlandsByCreatorRequest.getCity())) {
+                predicates.add(cb.like(root.get("city"), "%" + getWoodlandsByCreatorRequest.getCity().get(0) + "%"));
             }
             if(!user.getType().equals(UserTypeEnum.ADMIN)) {
                 predicates.add(cb.equal(root.get("creator"), user));
@@ -351,6 +386,29 @@ public class WoodlandServiceImpl implements WoodlandService {
         }
         Woodland woodland = woodlandOptional.get();
         return new WoodlandDetailDTO(woodland);
+    }
+
+    @Override
+    public List<WoodlandDTO> getWoodlandsInRectangleBounds(GetWoodlandsInRectangleBoundsRequest getWoodlandsInRectangleBoundsRequest) {
+        Polygon<G2D> polygon = createPolygon(getWoodlandsInRectangleBoundsRequest.getNeLng(), getWoodlandsInRectangleBoundsRequest.getNeLat(),
+                getWoodlandsInRectangleBoundsRequest.getSwLng(), getWoodlandsInRectangleBoundsRequest.getSwLat());
+        List<WoodlandDTO> woodlandDtoS = woodlandRepository.findWoodlandsInPolygon(polygon)
+                .stream()
+                .map(WoodlandDTO::new)
+                .collect(Collectors.toList());
+        return woodlandDtoS;
+    }
+
+    private Polygon<G2D> createPolygon(Double neLng, Double neLat, Double swLng, Double swLat) {
+        PositionSequence<G2D> wgs84positionSequence =
+                PositionSequenceBuilders.fixedSized(5, G2D.class)
+                        .add(new G2D(neLng, neLat))
+                        .add(new G2D(neLng, swLat))
+                        .add(new G2D(swLng, swLat))
+                        .add(new G2D(swLng, neLat))
+                        .add(new G2D(neLng, neLat))
+                        .toPositionSequence();
+        return new Polygon(wgs84positionSequence, CrsRegistry.getCoordinateReferenceSystemForEPSG(4326, null));
     }
 
 }

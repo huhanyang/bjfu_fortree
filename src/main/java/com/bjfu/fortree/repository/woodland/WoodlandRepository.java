@@ -2,6 +2,8 @@ package com.bjfu.fortree.repository.woodland;
 
 import com.bjfu.fortree.entity.user.User;
 import com.bjfu.fortree.entity.woodland.Woodland;
+import org.geolatte.geom.G2D;
+import org.geolatte.geom.Polygon;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
@@ -32,5 +34,13 @@ public interface WoodlandRepository extends JpaRepository<Woodland, Long>, JpaSp
      * @return 林地实体列表
      */
     List<Woodland> findByCreator(User creator);
+
+    /**
+     * 查询矩形范围内的林地列表
+     * @param polygon 矩形范围
+     * @return 林地列表
+     */
+    @Query(value = "select woodland from Woodland woodland where within(woodland.position, ?1) = true")
+    List<Woodland> findWoodlandsInPolygon(Polygon<G2D> polygon);
 
 }
