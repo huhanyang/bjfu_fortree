@@ -1,6 +1,6 @@
 package com.bjfu.fortree.security.interceptor;
 
-import com.bjfu.fortree.dto.user.UserWithAuthoritiesDTO;
+import com.bjfu.fortree.pojo.dto.user.UserWithAuthoritiesDTO;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.enums.entity.UserStateEnum;
 import com.bjfu.fortree.enums.entity.UserTypeEnum;

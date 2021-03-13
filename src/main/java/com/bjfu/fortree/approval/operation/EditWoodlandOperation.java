@@ -1,12 +1,14 @@
 package com.bjfu.fortree.approval.operation;
 
 import com.alibaba.fastjson.JSONObject;
-import com.bjfu.fortree.entity.user.User;
-import com.bjfu.fortree.entity.woodland.Woodland;
+import com.bjfu.fortree.approval.ApprovedOperation;
+import com.bjfu.fortree.pojo.entity.apply.ApplyJob;
+import com.bjfu.fortree.pojo.entity.user.User;
+import com.bjfu.fortree.pojo.entity.woodland.Woodland;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.exception.ApprovedOperationException;
 import com.bjfu.fortree.repository.woodland.WoodlandRepository;
-import com.bjfu.fortree.request.woodland.EditWoodlandRequest;
+import com.bjfu.fortree.pojo.request.woodland.EditWoodlandRequest;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -24,8 +26,8 @@ public class EditWoodlandOperation implements ApprovedOperation {
     private WoodlandRepository woodlandRepository;
 
     @Override
-    public void execute(String applyParam, User applyUser) {
-        EditWoodlandRequest editWoodlandRequest = JSONObject.parseObject(applyParam, EditWoodlandRequest.class);
+    public void execute(ApplyJob applyJob, User applyUser) {
+        EditWoodlandRequest editWoodlandRequest = JSONObject.parseObject(applyJob.getApplyParam(), EditWoodlandRequest.class);
         Optional<Woodland> woodlandOptional = woodlandRepository.findByIdForUpdate(editWoodlandRequest.getWoodlandId());
         if(woodlandOptional.isEmpty()) {
             throw new ApprovedOperationException(ResultEnum.WOODLAND_NOT_EXIST);

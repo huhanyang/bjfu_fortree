@@ -33,11 +33,16 @@ public enum ResultEnum {
     //5xx 系统相关错误
     UNKNOWN_ERROR(501, "未知错误"),
     USER_SESSION_WRONG(502, "session中用户账号信息错误"),
+    FILE_EXPORT_FAILED(503, "文件导出出错"),
+    FILE_UPLOAD_FAILED(504, "文件上传失败"),
+    FILE_DOWNLOAD_FAILED(505, "文件下载失败"),
+    OSS_CLIENT_INIT_FAILED(506, "oss客户端初始化失败"),
 
     //6xx 业务错误
     NOT_APPLY_USER(601, "非申请人"),
     APPLYJOB_STATE_CHANGE_NOT_ALLOWED(602, "不允许的申请状态变更"),
-    PERMISSION_DENIED(603, "获取信息权限不足");
+    PERMISSION_DENIED(603, "获取信息权限不足"),
+    FILE_NOT_EXIST_OR_EXPIRES(604, "文件过期或不存在");
 
     private final int code;
     private final String msg;

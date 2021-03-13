@@ -40,4 +40,8 @@ public enum AuthorityTypeEnum {
      * 编辑任何林地中的记录无需审批
      */
     EDIT_RECORD_IN_ANY_WOODLAND,
+    /**
+     * 导出任何信息无需审批
+     */
+    EXPORT_ANY_INFO,
 }

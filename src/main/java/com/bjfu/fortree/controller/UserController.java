@@ -1,19 +1,19 @@
 package com.bjfu.fortree.controller;
 
-import com.bjfu.fortree.dto.user.UserDTO;
-import com.bjfu.fortree.dto.user.UserWithAuthoritiesAndWoodlandsDTO;
-import com.bjfu.fortree.dto.user.UserWithAuthoritiesDTO;
+import com.bjfu.fortree.pojo.dto.user.UserDTO;
+import com.bjfu.fortree.pojo.dto.user.UserWithAuthoritiesAndWoodlandsDTO;
+import com.bjfu.fortree.pojo.dto.user.UserWithAuthoritiesDTO;
 import com.bjfu.fortree.enums.ResultEnum;
-import com.bjfu.fortree.request.user.*;
+import com.bjfu.fortree.pojo.request.user.*;
 import com.bjfu.fortree.security.annotation.RequireAdmin;
 import com.bjfu.fortree.security.annotation.RequireLogin;
 import com.bjfu.fortree.service.UserService;
 import com.bjfu.fortree.util.SessionUtil;
-import com.bjfu.fortree.vo.BaseResult;
-import com.bjfu.fortree.vo.PageVO;
-import com.bjfu.fortree.vo.user.UserVO;
-import com.bjfu.fortree.vo.user.UserWithAuthoritiesAndWoodlandsVO;
-import com.bjfu.fortree.vo.user.UserWithAuthoritiesVO;
+import com.bjfu.fortree.pojo.vo.BaseResult;
+import com.bjfu.fortree.pojo.vo.PageVO;
+import com.bjfu.fortree.pojo.vo.user.UserVO;
+import com.bjfu.fortree.pojo.vo.user.UserWithAuthoritiesAndWoodlandsVO;
+import com.bjfu.fortree.pojo.vo.user.UserWithAuthoritiesVO;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -91,6 +91,7 @@ public class UserController {
         return new BaseResult<>(ResultEnum.SUCCESS, new UserWithAuthoritiesVO(userWithAuthoritiesDTO));
     }
 
+    @RequireLogin
     @GetMapping("/logout")
     public BaseResult<Void> logout(HttpSession session) {
         SessionUtil.deleteSession(session);

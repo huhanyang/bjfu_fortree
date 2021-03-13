@@ -1,6 +1,6 @@
 package com.bjfu.fortree.repository.woodland;
 
-import com.bjfu.fortree.entity.woodland.Record;
+import com.bjfu.fortree.pojo.entity.woodland.Record;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;

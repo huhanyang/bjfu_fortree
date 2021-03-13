@@ -12,13 +12,20 @@ public enum WoodlandShapeEnum {
     /**
      * 正方形
      */
-    SQUARE,
+    SQUARE("正方形"),
     /**
      * 长方形
      */
-    RECTANGLE,
+    RECTANGLE("长方形"),
     /**
      * 圆形
      */
-    CIRCULAR
+    CIRCULAR("圆形");
+
+    private final String msg;
+
+    WoodlandShapeEnum(String msg) {
+        this.msg = msg;
+    }
+
 }

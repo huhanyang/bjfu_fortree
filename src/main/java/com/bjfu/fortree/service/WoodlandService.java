@@ -1,10 +1,11 @@
 package com.bjfu.fortree.service;
 
-import com.bjfu.fortree.dto.job.ApplyJobDTO;
-import com.bjfu.fortree.dto.woodland.WoodlandDTO;
-import com.bjfu.fortree.dto.woodland.WoodlandDetailDTO;
-import com.bjfu.fortree.request.woodland.*;
-import com.bjfu.fortree.vo.PageVO;
+import com.bjfu.fortree.pojo.dto.job.ApplyJobDTO;
+import com.bjfu.fortree.pojo.dto.woodland.TreeDTO;
+import com.bjfu.fortree.pojo.dto.woodland.WoodlandDTO;
+import com.bjfu.fortree.pojo.dto.woodland.WoodlandDetailDTO;
+import com.bjfu.fortree.pojo.request.woodland.*;
+import com.bjfu.fortree.pojo.vo.PageVO;
 
 import java.util.List;
 
@@ -86,12 +87,25 @@ public interface WoodlandService {
     PageVO<WoodlandDTO> getWoodlands(GetWoodlandsRequest getWoodlandsRequest);
 
     /**
+     * 获取所有的林地
+     * @return 所有的林地实体
+     */
+    List<WoodlandDTO> getAllWoodlands();
+
+    /**
      * 根据创建人获取林地列表
      * @param userAccount 用户账号
      * @param getWoodlandsByCreatorRequest 请求
      * @return 分页后的林地实体列表
      */
     PageVO<WoodlandDTO> getWoodlandsByCreator(String userAccount, GetWoodlandsByCreatorRequest getWoodlandsByCreatorRequest);
+
+    /**
+     * 获取矩形范围内的林地列表
+     * @param getWoodlandsInRectangleBoundsRequest 请求
+     * @return 林地列表
+     */
+    List<WoodlandDTO> getWoodlandsInRectangleBounds(GetWoodlandsInRectangleBoundsRequest getWoodlandsInRectangleBoundsRequest);
 
     /**
      * 获取林地详细信息
@@ -101,10 +115,10 @@ public interface WoodlandService {
     WoodlandDetailDTO getWoodlandDetail(Long woodlandId);
 
     /**
-     * 获取矩形范围内的林地列表
-     * @param getWoodlandsInRectangleBoundsRequest 请求
-     * @return 林地列表
+     * 获取记录中的树木
+     * @param getTreesRequest 请求
+     * @return 树木列表
      */
-    List<WoodlandDTO> getWoodlandsInRectangleBounds(GetWoodlandsInRectangleBoundsRequest getWoodlandsInRectangleBoundsRequest);
+    PageVO<TreeDTO> getTrees(GetTreesRequest getTreesRequest);
 
 }

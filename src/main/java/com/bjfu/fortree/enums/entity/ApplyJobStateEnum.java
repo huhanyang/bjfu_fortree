@@ -21,6 +21,10 @@ public enum ApplyJobStateEnum {
      */
     PASSED,
     /**
+     * 申请通过执行成功
+     */
+    PASSED_EXECUTION_SUCCESS,
+    /**
      * 申请通过但后续操作执行失败
      */
     PASSED_EXECUTION_FAILED,

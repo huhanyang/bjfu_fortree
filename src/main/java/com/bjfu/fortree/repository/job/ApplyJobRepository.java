@@ -1,7 +1,7 @@
 package com.bjfu.fortree.repository.job;
 
-import com.bjfu.fortree.entity.apply.ApplyJob;
-import com.bjfu.fortree.entity.user.User;
+import com.bjfu.fortree.pojo.entity.apply.ApplyJob;
+import com.bjfu.fortree.pojo.entity.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;

@@ -2,14 +2,15 @@ package com.bjfu.fortree.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bjfu.fortree.approval.ApprovedOperationDispatch;
-import com.bjfu.fortree.dto.job.ApplyJobDTO;
-import com.bjfu.fortree.dto.woodland.WoodlandDTO;
-import com.bjfu.fortree.dto.woodland.WoodlandDetailDTO;
-import com.bjfu.fortree.entity.apply.ApplyJob;
-import com.bjfu.fortree.entity.user.User;
-import com.bjfu.fortree.entity.woodland.Record;
-import com.bjfu.fortree.entity.woodland.Tree;
-import com.bjfu.fortree.entity.woodland.Woodland;
+import com.bjfu.fortree.pojo.dto.job.ApplyJobDTO;
+import com.bjfu.fortree.pojo.dto.woodland.TreeDTO;
+import com.bjfu.fortree.pojo.dto.woodland.WoodlandDTO;
+import com.bjfu.fortree.pojo.dto.woodland.WoodlandDetailDTO;
+import com.bjfu.fortree.pojo.entity.apply.ApplyJob;
+import com.bjfu.fortree.pojo.entity.user.User;
+import com.bjfu.fortree.pojo.entity.woodland.Record;
+import com.bjfu.fortree.pojo.entity.woodland.Tree;
+import com.bjfu.fortree.pojo.entity.woodland.Woodland;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.enums.entity.ApplyJobTypeEnum;
 import com.bjfu.fortree.enums.entity.AuthorityTypeEnum;
@@ -22,9 +23,9 @@ import com.bjfu.fortree.repository.user.UserRepository;
 import com.bjfu.fortree.repository.woodland.RecordRepository;
 import com.bjfu.fortree.repository.woodland.TreeRepository;
 import com.bjfu.fortree.repository.woodland.WoodlandRepository;
-import com.bjfu.fortree.request.woodland.*;
+import com.bjfu.fortree.pojo.request.woodland.*;
 import com.bjfu.fortree.service.WoodlandService;
-import com.bjfu.fortree.vo.PageVO;
+import com.bjfu.fortree.pojo.vo.PageVO;
 import org.geolatte.geom.G2D;
 import org.geolatte.geom.Polygon;
 import org.geolatte.geom.PositionSequence;
@@ -61,9 +62,6 @@ public class WoodlandServiceImpl implements WoodlandService {
     private ApplyJobRepository applyJobRepository;
     @Autowired
     private ApprovedOperationDispatch approvedOperationDispatch;
-
-
-    private static final String POLYGON_WKT_FORMAT = "POLYGON((%f %f,%f %f,%f %f,%f %f,%f %f))";
 
     @Override
     @Transactional(rollbackFor = RuntimeException.class)
@@ -187,6 +185,7 @@ public class WoodlandServiceImpl implements WoodlandService {
     }
 
     @Override
+    @Transactional(rollbackFor = RuntimeException.class)
     public ApplyJobDTO deleteRecord(String userAccount, Long recordId) {
         Optional<User> userOptional = userRepository.findByAccount(userAccount);
         if(userOptional.isEmpty()) {
@@ -218,6 +217,7 @@ public class WoodlandServiceImpl implements WoodlandService {
     }
 
     @Override
+    @Transactional(rollbackFor = RuntimeException.class)
     public ApplyJobDTO deleteTrees(String userAccount, DeleteTreesRequest deleteTreesRequest) {
         Optional<User> userOptional = userRepository.findByAccount(userAccount);
         if(userOptional.isEmpty()) {
@@ -343,6 +343,12 @@ public class WoodlandServiceImpl implements WoodlandService {
     }
 
     @Override
+    public List<WoodlandDTO> getAllWoodlands() {
+        List<Woodland> woodlands = woodlandRepository.findAll();
+        return woodlands.stream().map(WoodlandDTO::new).collect(Collectors.toList());
+    }
+
+    @Override
     public PageVO<WoodlandDTO> getWoodlandsByCreator(String userAccount, GetWoodlandsByCreatorRequest getWoodlandsByCreatorRequest) {
         Optional<User> userOptional = userRepository.findByAccount(userAccount);
         if(userOptional.isEmpty()) {
@@ -378,7 +384,7 @@ public class WoodlandServiceImpl implements WoodlandService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = RuntimeException.class)
     public WoodlandDetailDTO getWoodlandDetail(Long woodlandId) {
         Optional<Woodland> woodlandOptional = woodlandRepository.findById(woodlandId);
         if(woodlandOptional.isEmpty()) {
@@ -392,11 +398,37 @@ public class WoodlandServiceImpl implements WoodlandService {
     public List<WoodlandDTO> getWoodlandsInRectangleBounds(GetWoodlandsInRectangleBoundsRequest getWoodlandsInRectangleBoundsRequest) {
         Polygon<G2D> polygon = createPolygon(getWoodlandsInRectangleBoundsRequest.getNeLng(), getWoodlandsInRectangleBoundsRequest.getNeLat(),
                 getWoodlandsInRectangleBoundsRequest.getSwLng(), getWoodlandsInRectangleBoundsRequest.getSwLat());
-        List<WoodlandDTO> woodlandDtoS = woodlandRepository.findWoodlandsInPolygon(polygon)
+        return woodlandRepository.findWoodlandsInBounds(polygon)
                 .stream()
                 .map(WoodlandDTO::new)
                 .collect(Collectors.toList());
-        return woodlandDtoS;
+    }
+
+    @Override
+    public PageVO<TreeDTO> getTrees(GetTreesRequest getTreesRequest) {
+        Optional<Record> recordOptional = recordRepository.findById(getTreesRequest.getRecordId());
+        if(recordOptional.isEmpty()) {
+            throw new WrongParamException(ResultEnum.RECORD_NOT_EXIST);
+        }
+        Record record = recordOptional.get();
+        PageRequest pageRequest = PageRequest.of(getTreesRequest.getCurrent() - 1, getTreesRequest.getPageSize());
+        if(getTreesRequest.getField() != null) {
+            Sort sort = Sort.by(new Sort.Order(getTreesRequest.getOrder(), getTreesRequest.getField()));
+            pageRequest = PageRequest.of(getTreesRequest.getCurrent() - 1, getTreesRequest.getPageSize(), sort);
+        }
+        Page<Tree> trees = treeRepository.findAll((root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (!CollectionUtils.isEmpty(getTreesRequest.getTreeId())) {
+                predicates.add(cb.like(root.get("treeId"), "%" + getTreesRequest.getTreeId().get(0) + "%"));
+            }
+            if (!CollectionUtils.isEmpty(getTreesRequest.getSpecies())) {
+                predicates.add(cb.like(root.get("species"), "%" + getTreesRequest.getSpecies().get(0) + "%"));
+            }
+            predicates.add(cb.equal(root.get("record"), record));
+            return query.where(predicates.toArray(new Predicate[0])).getRestriction();
+        }, pageRequest);
+        List<TreeDTO> treeDtoS = trees.getContent().stream().map(TreeDTO::new).collect(Collectors.toList());
+        return new PageVO<>(trees.getTotalElements(), treeDtoS);
     }
 
     private Polygon<G2D> createPolygon(Double neLng, Double neLat, Double swLng, Double swLat) {

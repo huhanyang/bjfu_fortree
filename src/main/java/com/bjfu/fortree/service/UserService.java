@@ -1,11 +1,10 @@
 package com.bjfu.fortree.service;
 
-import com.bjfu.fortree.dto.user.UserDTO;
-import com.bjfu.fortree.dto.user.UserWithAuthoritiesAndWoodlandsDTO;
-import com.bjfu.fortree.dto.user.UserWithAuthoritiesDTO;
-import com.bjfu.fortree.enums.entity.UserStateEnum;
-import com.bjfu.fortree.request.user.*;
-import com.bjfu.fortree.vo.PageVO;
+import com.bjfu.fortree.pojo.dto.user.UserDTO;
+import com.bjfu.fortree.pojo.dto.user.UserWithAuthoritiesAndWoodlandsDTO;
+import com.bjfu.fortree.pojo.dto.user.UserWithAuthoritiesDTO;
+import com.bjfu.fortree.pojo.request.user.*;
+import com.bjfu.fortree.pojo.vo.PageVO;
 
 /**
  * 用户相关操作

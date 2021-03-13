@@ -1,12 +1,11 @@
 package com.bjfu.fortree.service;
 
-import com.bjfu.fortree.dto.job.ApplyJobDTO;
-import com.bjfu.fortree.request.apply.ApprovalApplyJobRequest;
-import com.bjfu.fortree.request.apply.GetAllApplyJobRequest;
-import com.bjfu.fortree.request.apply.GetMyApplyJobRequest;
-import com.bjfu.fortree.vo.PageVO;
-
-import java.util.List;
+import com.bjfu.fortree.pojo.dto.file.FileDownloadDTO;
+import com.bjfu.fortree.pojo.dto.job.ApplyJobDTO;
+import com.bjfu.fortree.pojo.request.apply.ApprovalApplyJobRequest;
+import com.bjfu.fortree.pojo.request.apply.GetAllApplyJobRequest;
+import com.bjfu.fortree.pojo.request.apply.GetMyApplyJobRequest;
+import com.bjfu.fortree.pojo.vo.PageVO;
 
 /**
  * 审批相关
@@ -52,4 +51,12 @@ public interface ApplyJobService {
      * @return 申请实体
      */
     ApplyJobDTO cancelApplyJob(Long applyJobId, String userAccount);
+
+    /**
+     * 获取文件下载链接
+     * @param applyJobId 申请id
+     * @param userAccount 操作者用户账号
+     * @return 申请实体
+     */
+    FileDownloadDTO getApplyJobDownloadFileUrl(Long applyJobId, String userAccount);
 }

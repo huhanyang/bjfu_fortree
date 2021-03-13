@@ -1,5 +1,6 @@
 package com.bjfu.fortree.enums.entity;
 
+import com.bjfu.fortree.approval.ApprovedOperation;
 import com.bjfu.fortree.approval.operation.*;
 import lombok.Getter;
 
@@ -20,7 +21,8 @@ public enum ApplyJobTypeEnum {
     DELETE_RECORD_IN_WOODLAND(new DeleteRecordInWoodlandOperation()),
     DELETE_TREES_IN_RECORD(new DeleteTreesInRecordOperation()),
     EDIT_WOODLAND(new EditWoodlandOperation()),
-    EDIT_RECORD(new EditRecordOperation());
+    EDIT_RECORD(new EditRecordOperation()),
+    EXPORT_WOODLANDS_INFO(new ExportWoodlandsInfoOperation());
 
     /**
      * 申请通过的后置执行类

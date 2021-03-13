@@ -1,12 +1,13 @@
 package com.bjfu.fortree.approval.operation;
 
 import com.alibaba.fastjson.JSONObject;
-import com.bjfu.fortree.entity.user.User;
-import com.bjfu.fortree.entity.woodland.Woodland;
-import com.bjfu.fortree.repository.user.UserRepository;
+import com.bjfu.fortree.approval.ApprovedOperation;
+import com.bjfu.fortree.pojo.entity.apply.ApplyJob;
+import com.bjfu.fortree.pojo.entity.user.User;
+import com.bjfu.fortree.pojo.entity.woodland.Woodland;
 import com.bjfu.fortree.repository.woodland.WoodlandRepository;
-import com.bjfu.fortree.request.woodland.CreateWoodlandRequest;
-import com.bjfu.fortree.spatial.G2DPoint;
+import com.bjfu.fortree.pojo.request.woodland.CreateWoodlandRequest;
+import com.bjfu.fortree.spatial.G2dPoint;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -16,18 +17,18 @@ import org.springframework.stereotype.Component;
  * @author warthog
  */
 @Component
-public class CreateWoodlandApprovedOperation implements ApprovedOperation{
+public class CreateWoodlandApprovedOperation implements ApprovedOperation {
 
     @Autowired
     private WoodlandRepository woodlandRepository;
 
     @Override
-    public void execute(String applyParam, User applyUser) {
-        CreateWoodlandRequest createWoodlandRequest = JSONObject.parseObject(applyParam, CreateWoodlandRequest.class);
+    public void execute(ApplyJob applyJob, User applyUser) {
+        CreateWoodlandRequest createWoodlandRequest = JSONObject.parseObject(applyJob.getApplyParam(), CreateWoodlandRequest.class);
         Woodland woodland = new Woodland();
         BeanUtils.copyProperties(createWoodlandRequest, woodland);
         woodland.setCreator(applyUser);
-        woodland.setPosition(G2DPoint.convertToGeom(createWoodlandRequest.getPosition()));
+        woodland.setPosition(G2dPoint.convertToGeom(createWoodlandRequest.getPosition()));
         woodlandRepository.save(woodland);
     }
 }

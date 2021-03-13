@@ -1,10 +1,11 @@
 package com.bjfu.fortree.service.impl;
 
 import com.bjfu.fortree.approval.ApprovedOperationDispatch;
-import com.bjfu.fortree.dto.job.ApplyJobDTO;
-import com.bjfu.fortree.dto.user.UserDTO;
-import com.bjfu.fortree.entity.apply.ApplyJob;
-import com.bjfu.fortree.entity.user.User;
+import com.bjfu.fortree.pojo.dto.file.FileDownloadDTO;
+import com.bjfu.fortree.pojo.dto.job.ApplyJobDTO;
+import com.bjfu.fortree.pojo.entity.apply.ApplyJob;
+import com.bjfu.fortree.pojo.entity.file.OssFile;
+import com.bjfu.fortree.pojo.entity.user.User;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.enums.entity.ApplyJobStateEnum;
 import com.bjfu.fortree.enums.entity.UserTypeEnum;
@@ -12,27 +13,25 @@ import com.bjfu.fortree.exception.NotAllowedOperationException;
 import com.bjfu.fortree.exception.SystemWrongException;
 import com.bjfu.fortree.exception.UnauthorizedOperationException;
 import com.bjfu.fortree.exception.WrongParamException;
+import com.bjfu.fortree.repository.file.OssFileRepository;
 import com.bjfu.fortree.repository.job.ApplyJobRepository;
-import com.bjfu.fortree.repository.user.AuthorityRepository;
 import com.bjfu.fortree.repository.user.UserRepository;
-import com.bjfu.fortree.request.apply.ApprovalApplyJobRequest;
-import com.bjfu.fortree.request.apply.GetAllApplyJobRequest;
-import com.bjfu.fortree.request.apply.GetMyApplyJobRequest;
+import com.bjfu.fortree.pojo.request.apply.ApprovalApplyJobRequest;
+import com.bjfu.fortree.pojo.request.apply.GetAllApplyJobRequest;
+import com.bjfu.fortree.pojo.request.apply.GetMyApplyJobRequest;
 import com.bjfu.fortree.service.ApplyJobService;
-import com.bjfu.fortree.vo.PageVO;
+import com.bjfu.fortree.service.OssService;
+import com.bjfu.fortree.pojo.vo.PageVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.persistence.criteria.Predicate;
-import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -45,6 +44,10 @@ public class ApplyJobServiceImpl implements ApplyJobService {
     private ApplyJobRepository applyJobRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private OssFileRepository ossFileRepository;
+    @Autowired
+    private OssService ossService;
     @Autowired
     private ApprovedOperationDispatch approvedOperationDispatch;
 
@@ -99,7 +102,7 @@ public class ApplyJobServiceImpl implements ApplyJobService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = RuntimeException.class)
     public ApplyJobDTO approvalApplyJob(String userAccount, ApprovalApplyJobRequest approvalApplyJobRequest) {
         Optional<User> userOptional = userRepository.findByAccount(userAccount);
         if(userOptional.isEmpty()) {
@@ -122,7 +125,7 @@ public class ApplyJobServiceImpl implements ApplyJobService {
         applyJob.setOperateTime(new Date());
         applyJob.setMsg(approvalApplyJobRequest.getMsg());
         if(approvalApplyJobRequest.getState().equals(ApplyJobStateEnum.PASSED)) {
-            approvedOperationDispatch.dispatch(applyJob);
+            approvedOperationDispatch.asyncDispatch(applyJob);
         }
         applyJob = applyJobRepository.save(applyJob);
         return new ApplyJobDTO(applyJob);
@@ -158,7 +161,7 @@ public class ApplyJobServiceImpl implements ApplyJobService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = RuntimeException.class)
     public ApplyJobDTO cancelApplyJob(Long applyJobId, String userAccount) {
         Optional<User> userOptional = userRepository.findByAccount(userAccount);
         if(userOptional.isEmpty()) {
@@ -182,5 +185,40 @@ public class ApplyJobServiceImpl implements ApplyJobService {
         applyJob.setOperateTime(new Date());
         applyJob = applyJobRepository.save(applyJob);
         return new ApplyJobDTO(applyJob);
+    }
+
+    @Override
+    @Transactional(rollbackFor = RuntimeException.class)
+    public FileDownloadDTO getApplyJobDownloadFileUrl(Long applyJobId, String userAccount) {
+        Optional<User> userOptional = userRepository.findByAccount(userAccount);
+        if(userOptional.isEmpty()) {
+            throw new SystemWrongException(ResultEnum.USER_SESSION_WRONG);
+        }
+        User user = userOptional.get();
+        Optional<ApplyJob> applyJobOptional = applyJobRepository.findByIdForUpdate(applyJobId);
+        if(applyJobOptional.isEmpty()) {
+            throw new WrongParamException(ResultEnum.APPLYJOB_NOT_EXIST);
+        }
+        ApplyJob applyJob = applyJobOptional.get();
+        if(!applyJob.getApplyUser().getId().equals(user.getId()) && !user.getType().equals(UserTypeEnum.ADMIN)) {
+            throw new UnauthorizedOperationException(ResultEnum.NOT_APPLY_USER);
+        }
+        OssFile downloadFile = applyJob.getDownloadFile();
+        if(downloadFile == null || downloadFile.getExpiresTime().getTime() < System.currentTimeMillis()) {
+            throw new NotAllowedOperationException(ResultEnum.FILE_NOT_EXIST_OR_EXPIRES);
+        }
+        String downloadUrl = downloadFile.getDownloadUrl();
+        if(downloadUrl == null || downloadFile.getDownloadUrlExpiresTime().getTime() < System.currentTimeMillis()) {
+            // 下载链接失效 更新下载链接
+            downloadUrl = ossService.preSignedGetObject(downloadFile.getOssBucketName(), downloadFile.getOssObjectName());
+            Date downloadUrlExpiresTime = new Date(System.currentTimeMillis() + MinioOssServiceImpl.DEFAULT_GET_OBJECT_EXPIRES);
+            downloadFile.setDownloadUrl(downloadUrl);
+            if(downloadFile.getExpiresTime().getTime() < downloadUrlExpiresTime.getTime()) {
+                downloadUrlExpiresTime = downloadFile.getExpiresTime();
+            }
+            downloadFile.setDownloadUrlExpiresTime(downloadUrlExpiresTime);
+            ossFileRepository.save(downloadFile);
+        }
+        return new FileDownloadDTO(downloadFile);
     }
 }

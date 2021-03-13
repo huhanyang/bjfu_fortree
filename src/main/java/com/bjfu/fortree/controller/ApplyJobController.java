@@ -1,15 +1,19 @@
 package com.bjfu.fortree.controller;
 
-import com.bjfu.fortree.dto.job.ApplyJobDTO;
+import com.bjfu.fortree.pojo.dto.file.FileDownloadDTO;
+import com.bjfu.fortree.pojo.dto.job.ApplyJobDTO;
 import com.bjfu.fortree.enums.ResultEnum;
-import com.bjfu.fortree.request.apply.ApprovalApplyJobRequest;
-import com.bjfu.fortree.request.apply.GetAllApplyJobRequest;
-import com.bjfu.fortree.request.apply.GetMyApplyJobRequest;
+import com.bjfu.fortree.pojo.request.apply.ApprovalApplyJobRequest;
+import com.bjfu.fortree.pojo.request.apply.GetAllApplyJobRequest;
+import com.bjfu.fortree.pojo.request.apply.GetMyApplyJobRequest;
+import com.bjfu.fortree.security.annotation.RequireAdmin;
+import com.bjfu.fortree.security.annotation.RequireLogin;
 import com.bjfu.fortree.service.ApplyJobService;
 import com.bjfu.fortree.util.SessionUtil;
-import com.bjfu.fortree.vo.BaseResult;
-import com.bjfu.fortree.vo.PageVO;
-import com.bjfu.fortree.vo.apply.ApplyJobVO;
+import com.bjfu.fortree.pojo.vo.BaseResult;
+import com.bjfu.fortree.pojo.vo.PageVO;
+import com.bjfu.fortree.pojo.vo.apply.ApplyJobVO;
+import com.bjfu.fortree.pojo.vo.file.FileDownloadVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +31,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/applyJob")
 @Validated
 public class ApplyJobController {
+
     @Autowired
     private ApplyJobService applyJobService;
 
@@ -46,6 +51,7 @@ public class ApplyJobController {
         return new BaseResult<>(ResultEnum.SUCCESS, new ApplyJobVO(applyJobDetail));
     }
 
+    @RequireAdmin
     @PostMapping("/approvalApplyJob")
     public BaseResult<ApplyJobVO> approvalApplyJob(@Validated @RequestBody ApprovalApplyJobRequest approvalApplyJobRequest, HttpSession session) {
         String userAccount = SessionUtil.getUserInfo(session).getAccount();
@@ -53,6 +59,7 @@ public class ApplyJobController {
         return new BaseResult<>(ResultEnum.SUCCESS, new ApplyJobVO(applyJobDTO));
     }
 
+    @RequireLogin
     @PostMapping("/getMyApplyJob")
     public BaseResult<PageVO<ApplyJobVO>> getMyApplyJob(@Validated @RequestBody GetMyApplyJobRequest getMyApplyJobRequest, HttpSession session) {
         String userAccount = SessionUtil.getUserInfo(session).getAccount();
@@ -63,11 +70,20 @@ public class ApplyJobController {
         return new BaseResult<>(ResultEnum.SUCCESS, new PageVO<>(applyJobDTOPageVO.getCount(), applyJobVOList));
     }
 
+    @RequireLogin
     @PostMapping("/cancelApplyJob")
     public BaseResult<ApplyJobVO> cancelApplyJob(@NotNull(message = "申请id不能为空!") Long id, HttpSession session) {
         String userAccount = SessionUtil.getUserInfo(session).getAccount();
         ApplyJobDTO applyJobDTO = applyJobService.cancelApplyJob(id, userAccount);
         return new BaseResult<>(ResultEnum.SUCCESS, new ApplyJobVO(applyJobDTO));
+    }
+
+    @RequireLogin
+    @GetMapping("/getApplyJobDownloadFileUrl")
+    public BaseResult<FileDownloadVO> getApplyJobDownloadFileUrl(@NotNull(message = "申请id不能为空!") Long id, HttpSession session) {
+        String userAccount = SessionUtil.getUserInfo(session).getAccount();
+        FileDownloadDTO fileDownloadDTO = applyJobService.getApplyJobDownloadFileUrl(id, userAccount);
+        return new BaseResult<>(ResultEnum.SUCCESS, new FileDownloadVO(fileDownloadDTO));
     }
 
 }

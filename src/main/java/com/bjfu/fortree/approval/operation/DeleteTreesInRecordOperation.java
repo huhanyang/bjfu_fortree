@@ -1,9 +1,11 @@
 package com.bjfu.fortree.approval.operation;
 
 import com.alibaba.fastjson.JSONObject;
-import com.bjfu.fortree.entity.user.User;
+import com.bjfu.fortree.approval.ApprovedOperation;
+import com.bjfu.fortree.pojo.entity.apply.ApplyJob;
+import com.bjfu.fortree.pojo.entity.user.User;
 import com.bjfu.fortree.repository.woodland.TreeRepository;
-import com.bjfu.fortree.request.woodland.DeleteTreesRequest;
+import com.bjfu.fortree.pojo.request.woodland.DeleteTreesRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,8 +20,8 @@ public class DeleteTreesInRecordOperation implements ApprovedOperation {
     private TreeRepository treeRepository;
 
     @Override
-    public void execute(String applyParam, User applyUser) {
-        DeleteTreesRequest deleteTreesRequest = JSONObject.parseObject(applyParam, DeleteTreesRequest.class);
+    public void execute(ApplyJob applyJob, User applyUser) {
+        DeleteTreesRequest deleteTreesRequest = JSONObject.parseObject(applyJob.getApplyParam(), DeleteTreesRequest.class);
         treeRepository.deleteByIdIn(deleteTreesRequest.getTreeIds());
     }
 }

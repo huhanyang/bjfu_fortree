@@ -16,4 +16,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.spatial.dialect.mysql.MySQL8SpatialDialect
-        format_sql: true
+        #format_sql: true
+minio:
+  url: localhost
+  port: 9000
+  accessKey: minioadmin
+  secretKey: minioadmin

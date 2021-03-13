@@ -1,6 +1,6 @@
 package com.bjfu.fortree.repository.user;
 
-import com.bjfu.fortree.entity.user.User;
+import com.bjfu.fortree.pojo.entity.user.User;
 import com.bjfu.fortree.enums.entity.UserStateEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;

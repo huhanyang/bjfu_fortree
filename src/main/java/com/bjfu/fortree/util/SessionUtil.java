@@ -1,6 +1,6 @@
 package com.bjfu.fortree.util;
 
-import com.bjfu.fortree.dto.user.UserWithAuthoritiesDTO;
+import com.bjfu.fortree.pojo.dto.user.UserWithAuthoritiesDTO;
 import com.bjfu.fortree.enums.SessionKeyEnum;
 
 import javax.servlet.http.HttpSession;
