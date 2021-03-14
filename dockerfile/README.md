@@ -10,15 +10,15 @@
 
 后端
 
-docker build -t bjfu_fortree_back:latest .
+docker build --no-cache=true -t bjfu_fortree_back:latest .
 
 前端
 
-docker build -t bjfu_fortree_front:latest .
+docker build --no-cache=true -t bjfu_fortree_front:latest .
 
 开发
 
-docker build -t bjfu_fortree_develop:latest .
+docker build --no-cache=true -t bjfu_fortree_develop:latest .
 
 ## 使用Docker镜像部署
 
