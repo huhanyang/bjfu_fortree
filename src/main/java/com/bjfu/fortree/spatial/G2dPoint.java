@@ -11,7 +11,7 @@ import static org.geolatte.geom.builder.DSL.point;
 import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 
 /**
- * G2D的点
+ * 2维的点
  * @author warthog
  */
 @Data

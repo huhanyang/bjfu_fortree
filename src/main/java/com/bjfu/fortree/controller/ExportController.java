@@ -3,6 +3,7 @@ package com.bjfu.fortree.controller;
 import com.bjfu.fortree.pojo.dto.job.ApplyJobDTO;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.exception.ExportExcelException;
+import com.bjfu.fortree.pojo.request.export.ExportWoodlandsInBoundsRequest;
 import com.bjfu.fortree.pojo.request.export.ExportWoodlandsInfoRequest;
 import com.bjfu.fortree.security.annotation.RequireLogin;
 import com.bjfu.fortree.service.ExportService;
@@ -12,7 +13,11 @@ import com.bjfu.fortree.pojo.vo.BaseResult;
 import com.bjfu.fortree.pojo.vo.apply.ApplyJobVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -47,10 +52,20 @@ public class ExportController {
 
     @RequireLogin
     @PostMapping("/exportWoodlandsInfo")
-    public BaseResult<ApplyJobVO> exportWoodlandsInfo(@Validated @RequestBody ExportWoodlandsInfoRequest exportWoodlandsInfoRequest,
+    public BaseResult<ApplyJobVO> exportWoodlandsInfo(@Validated @RequestBody ExportWoodlandsInfoRequest request,
                                                       HttpSession session) {
-        ApplyJobDTO applyJobDTO = exportService.exportWoodlandsInfo(SessionUtil.getUserInfo(session).getAccount(),
-                exportWoodlandsInfoRequest.getIds());
+        String userAccount = SessionUtil.getUserInfo(session).getAccount();
+        ApplyJobDTO applyJobDTO = exportService.exportWoodlandsInfo(userAccount, request.getIds());
         return new BaseResult<>(ResultEnum.SUCCESS, new ApplyJobVO(applyJobDTO));
     }
+
+    @RequireLogin
+    @PostMapping("/exportWoodlandsInfoInBounds")
+    public BaseResult<ApplyJobVO> exportWoodlandsInfoInBounds(@Validated @RequestBody ExportWoodlandsInBoundsRequest request,
+                                                      HttpSession session) {
+        String userAccount = SessionUtil.getUserInfo(session).getAccount();
+        ApplyJobDTO applyJobDTO = exportService.exportWoodlandsInfoInBounds(userAccount, request);
+        return new BaseResult<>(ResultEnum.SUCCESS, new ApplyJobVO(applyJobDTO));
+    }
+
 }

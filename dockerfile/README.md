@@ -24,12 +24,15 @@ docker build --no-cache=true -t bjfu_fortree_develop:latest .
 
 后端
 
-docker run -itd --name bjfu_fortree_back -p 8080:8080 bjfu_fortree_back
+docker run -itd --name bjfu_fortree_back --network host -p 8080:8080 bjfu_fortree_back
 
 前端
 
-docker run -itd --name bjfu_fortree_front -p 80:80 bjfu_fortree_front
+docker run -itd --name bjfu_fortree_front --network host -p 80:80 bjfu_fortree_front
 
 开发
 
 docker run -itd --name bjfu_fortree_develop -p 80:80 bjfu_fortree_develop
+
+
+docker run -p 3306:3306 -d --name mysql8 -e MYSQL_ROOT_PASSWORD=123456 -e MYSQL_DATABASE=fortree  mysql:8

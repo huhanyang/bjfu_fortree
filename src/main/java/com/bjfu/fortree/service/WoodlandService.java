@@ -40,6 +40,14 @@ public interface WoodlandService {
     ApplyJobDTO addTrees(String userAccount, AddTreesRequest addTreesRequest);
 
     /**
+     * 通过excel为记录添加树木
+     * @param userAccount 用户账号
+     * @param addTreesByExcelRequest 添加树木的请求
+     * @return 申请实体
+     */
+    ApplyJobDTO addTreesByExcel(String userAccount, AddTreesByExcelRequest addTreesByExcelRequest);
+
+    /**
      * 删除林地
      * @param userAccount 用户账号
      * @param woodlandId 林地id
@@ -99,13 +107,6 @@ public interface WoodlandService {
      * @return 分页后的林地实体列表
      */
     PageVO<WoodlandDTO> getWoodlandsByCreator(String userAccount, GetWoodlandsByCreatorRequest getWoodlandsByCreatorRequest);
-
-    /**
-     * 获取矩形范围内的林地列表
-     * @param getWoodlandsInRectangleBoundsRequest 请求
-     * @return 林地列表
-     */
-    List<WoodlandDTO> getWoodlandsInRectangleBounds(GetWoodlandsInRectangleBoundsRequest getWoodlandsInRectangleBoundsRequest);
 
     /**
      * 获取林地详细信息

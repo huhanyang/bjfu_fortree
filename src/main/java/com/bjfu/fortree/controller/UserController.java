@@ -56,9 +56,11 @@ public class UserController {
         return new BaseResult<>(ResultEnum.SUCCESS, new UserWithAuthoritiesVO(userWithAuthoritiesDTO));
     }
 
+    @RequireLogin
     @PostMapping("/changePassword")
     public BaseResult<UserVO> changePassword(@Validated @RequestBody ChangePasswordRequest changePasswordRequest, HttpSession session) {
-        UserDTO userDTO = userService.changePassword(SessionUtil.getUserInfo(session).getAccount(), changePasswordRequest);
+        String userAccount = SessionUtil.getUserInfo(session).getAccount();
+        UserDTO userDTO = userService.changePassword(userAccount, changePasswordRequest);
         if(userDTO == null) {
             return new BaseResult<>(ResultEnum.ACCOUNT_NOT_EXIST_OR_PASSWORD_WRONG);
         }
@@ -69,16 +71,18 @@ public class UserController {
     @RequireLogin
     @GetMapping("/getInfoWithAuthorities")
     public BaseResult<UserWithAuthoritiesVO> getInfoWithAuthorities(HttpSession session) {
+        String userAccount = SessionUtil.getUserInfo(session).getAccount();
         UserWithAuthoritiesDTO userWithAuthoritiesDTO =
-                userService.getUserInfoWithAuthorities(SessionUtil.getUserInfo(session).getAccount());
+                userService.getUserInfoWithAuthorities(userAccount);
         return new BaseResult<>(ResultEnum.SUCCESS, new UserWithAuthoritiesVO(userWithAuthoritiesDTO));
     }
 
     @RequireLogin
     @GetMapping("/getInfoWithAuthoritiesAndWoodlands")
     public BaseResult<UserWithAuthoritiesAndWoodlandsVO> getInfoWithAuthoritiesAndWoodlands(HttpSession session) {
+        String userAccount = SessionUtil.getUserInfo(session).getAccount();
         UserWithAuthoritiesAndWoodlandsDTO userWithAuthoritiesAndWoodlands =
-                userService.getUserWithAuthoritiesAndWoodlands(SessionUtil.getUserInfo(session).getAccount());
+                userService.getUserWithAuthoritiesAndWoodlands(userAccount);
         return new BaseResult<>(ResultEnum.SUCCESS, new UserWithAuthoritiesAndWoodlandsVO(userWithAuthoritiesAndWoodlands));
     }
 

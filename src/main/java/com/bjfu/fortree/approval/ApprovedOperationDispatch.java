@@ -45,6 +45,10 @@ public class ApprovedOperationDispatch {
             throw new SystemWrongException(ResultEnum.UNKNOWN_ERROR);
         }
         applyJob = applyJobOptional.get();
+        if(!applyJob.getState().equals(ApplyJobStateEnum.APPLYING) && !applyJob.getState().equals(ApplyJobStateEnum.PASSED)) {
+            log.warn("apply state is not applying! stop execute!");
+            return;
+        }
         // 从枚举类中获取操作器
         Class<ApprovedOperation> approvedOperationClass = applyJob.getType().getApprovedOperationClass();
         ApprovedOperation approvedOperation = applicationContext.getBean(approvedOperationClass);
@@ -81,4 +85,5 @@ public class ApprovedOperationDispatch {
     public void asyncDispatch(ApplyJob applyJob) {
         dispatch(applyJob);
     }
+
 }

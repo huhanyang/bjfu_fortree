@@ -24,6 +24,7 @@ import java.security.NoSuchAlgorithmException;
 public class MinioConfig {
 
     public static final String EXCEL_BUCKET_NAME = "export-excel";
+    public static final String APPLY_EXCEL_BUCKET_NAME = "apply-excel";
 
     @Value("${minio.url}")
     private String minioUrl;
@@ -43,6 +44,13 @@ public class MinioConfig {
         if(!minioClient.bucketExists(bucketExistsArgs)) {
             MakeBucketArgs makeBucketArgs = MakeBucketArgs.builder()
                     .bucket(EXCEL_BUCKET_NAME)
+                    .build();
+            minioClient.makeBucket(makeBucketArgs);
+        }
+        bucketExistsArgs = BucketExistsArgs.builder().bucket(APPLY_EXCEL_BUCKET_NAME).build();
+        if(!minioClient.bucketExists(bucketExistsArgs)) {
+            MakeBucketArgs makeBucketArgs = MakeBucketArgs.builder()
+                    .bucket(APPLY_EXCEL_BUCKET_NAME)
                     .build();
             minioClient.makeBucket(makeBucketArgs);
         }

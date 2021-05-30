@@ -19,12 +19,12 @@ import com.bjfu.fortree.excel.head.WoodlandInfoHead;
 import com.bjfu.fortree.exception.ExportExcelException;
 import com.bjfu.fortree.exception.SystemWrongException;
 import com.bjfu.fortree.exception.WrongParamException;
+import com.bjfu.fortree.pojo.request.export.ExportWoodlandsInBoundsRequest;
 import com.bjfu.fortree.repository.job.ApplyJobRepository;
 import com.bjfu.fortree.repository.user.AuthorityRepository;
 import com.bjfu.fortree.repository.user.UserRepository;
 import com.bjfu.fortree.repository.woodland.WoodlandRepository;
 import com.bjfu.fortree.service.ExportService;
-import com.bjfu.fortree.spatial.G2dPoint;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -127,8 +127,35 @@ public class ExportServiceImpl implements ExportService {
     }
 
     @Override
-    public ApplyJobDTO exportWoodlandsInfoInBounds(String userAccount, List<G2dPoint> points) {
-        // todo 根据范围导出excel
-        return null;
+    @Transactional(rollbackFor = RuntimeException.class)
+    public ApplyJobDTO exportWoodlandsInfoInBounds(String userAccount, ExportWoodlandsInBoundsRequest request) {
+        Optional<User> userOptional = userRepository.findByAccount(userAccount);
+        if(userOptional.isEmpty()) {
+            throw new SystemWrongException(ResultEnum.USER_SESSION_WRONG);
+        }
+        User user = userOptional.get();
+        StringBuilder stringBuilder = new StringBuilder();
+        woodlandRepository.findWoodlandsInBounds(request.getPolygon().convertToGeom())
+                .forEach(woodland -> stringBuilder.append(woodland.getName()).append(','));
+        String exportWoodlandsName = stringBuilder.toString();
+        if(stringBuilder.capacity() > 250) {
+            exportWoodlandsName = stringBuilder.substring(0, 250) + "...";
+        }
+        String applyParam = JSONObject.toJSONString(request);
+        if(authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.EXPORT_ANY_INFO)) {
+            ApplyJob passedApply = ApplyJob.createPassedApply(user, ApplyJobTypeEnum.EXPORT_WOODLANDS_INFO, applyParam,
+                    exportWoodlandsName);
+            applyJobRepository.save(passedApply);
+            // 执行审批通过后的操作器来落库
+            approvedOperationDispatch.asyncDispatch(passedApply);
+            return new ApplyJobDTO(passedApply);
+        } else {
+            ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.EXPORT_WOODLANDS_INFO, applyParam,
+                    exportWoodlandsName);
+            // 将需要审批的请求申请落库
+            applyJobRepository.save(apply);
+            return new ApplyJobDTO(apply);
+        }
     }
+
 }

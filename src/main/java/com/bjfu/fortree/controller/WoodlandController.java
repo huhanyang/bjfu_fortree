@@ -64,6 +64,15 @@ public class WoodlandController {
     }
 
     @RequireLogin
+    @PostMapping("/addTreesByExcel")
+    public BaseResult<ApplyJobVO> addTreesByExcel(AddTreesByExcelRequest addTreesByExcelRequest, HttpSession session) {
+        String userAccount = SessionUtil.getUserInfo(session).getAccount();
+        ApplyJobDTO applyJobDTO = woodlandService.addTreesByExcel(userAccount, addTreesByExcelRequest);
+        ApplyJobVO applyJobVO = new ApplyJobVO(applyJobDTO);
+        return new BaseResult<>(ResultEnum.SUCCESS, applyJobVO);
+    }
+
+    @RequireLogin
     @DeleteMapping("/deleteWoodland")
     public BaseResult<ApplyJobVO> deleteWoodland(@NotNull(message = "林地id不能为空!") Long id, HttpSession session) {
         String userAccount = SessionUtil.getUserInfo(session).getAccount();
@@ -116,7 +125,6 @@ public class WoodlandController {
         return new BaseResult<>(ResultEnum.SUCCESS, new PageVO<>(woodlandDTOPageVO.getCount(), woodlandVOS));
     }
 
-    @RequireLogin
     @GetMapping("/getAllWoodlands")
     public BaseResult<List<WoodlandVO>> getAllWoodlands() {
         List<WoodlandDTO> woodlandDTOS = woodlandService.getAllWoodlands();
@@ -133,16 +141,6 @@ public class WoodlandController {
         return new BaseResult<>(ResultEnum.SUCCESS, new PageVO<>(woodlandDTOPageVO.getCount(), woodlandVOS));
     }
 
-    @GetMapping("/getWoodlandsInRectangleBounds")
-    public BaseResult<List<WoodlandVO>> getWoodlands(@Validated GetWoodlandsInRectangleBoundsRequest getWoodlandsInRectangleBoundsRequest) {
-        List<WoodlandVO> woodlandVOS = woodlandService.getWoodlandsInRectangleBounds(getWoodlandsInRectangleBoundsRequest)
-                .stream()
-                .map(WoodlandVO::new)
-                .collect(Collectors.toList());
-        return new BaseResult<>(ResultEnum.SUCCESS, woodlandVOS);
-    }
-
-    @RequireLogin
     @GetMapping("/getWoodlandDetail")
     public BaseResult<WoodlandDetailVO> getWoodlandDetail(@NotNull(message = "林地id不能为空!") Long id) {
         WoodlandDetailDTO woodlandDetail = woodlandService.getWoodlandDetail(id);

@@ -1,5 +1,6 @@
 package com.bjfu.fortree.controller;
 
+import com.bjfu.fortree.exception.ForTreeException;
 import com.bjfu.fortree.exception.WrongParamException;
 import com.bjfu.fortree.pojo.vo.BaseResult;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(WrongParamException.class)
     public BaseResult<Void> badParamException(WrongParamException wrongParamException){
         return new BaseResult<>(wrongParamException.getResultEnum());
+    }
+
+    @ResponseBody
+    @ExceptionHandler(ForTreeException.class)
+    public BaseResult<Void> forTreeException(ForTreeException forTreeException) {
+        return new BaseResult<>(forTreeException.getResultEnum());
     }
 
 }

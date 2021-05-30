@@ -13,6 +13,7 @@ import static org.geolatte.geom.builder.DSL.*;
 import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 
 /**
+ * 2维的多边形
  * @author warthog
  */
 @Data

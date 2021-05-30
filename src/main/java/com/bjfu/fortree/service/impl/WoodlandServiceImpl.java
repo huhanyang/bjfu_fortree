@@ -2,11 +2,14 @@ package com.bjfu.fortree.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bjfu.fortree.approval.ApprovedOperationDispatch;
+import com.bjfu.fortree.config.MinioConfig;
+import com.bjfu.fortree.enums.entity.FileTypeEnum;
 import com.bjfu.fortree.pojo.dto.job.ApplyJobDTO;
 import com.bjfu.fortree.pojo.dto.woodland.TreeDTO;
 import com.bjfu.fortree.pojo.dto.woodland.WoodlandDTO;
 import com.bjfu.fortree.pojo.dto.woodland.WoodlandDetailDTO;
 import com.bjfu.fortree.pojo.entity.apply.ApplyJob;
+import com.bjfu.fortree.pojo.entity.file.OssFile;
 import com.bjfu.fortree.pojo.entity.user.User;
 import com.bjfu.fortree.pojo.entity.woodland.Record;
 import com.bjfu.fortree.pojo.entity.woodland.Tree;
@@ -17,6 +20,7 @@ import com.bjfu.fortree.enums.entity.AuthorityTypeEnum;
 import com.bjfu.fortree.enums.entity.UserTypeEnum;
 import com.bjfu.fortree.exception.SystemWrongException;
 import com.bjfu.fortree.exception.WrongParamException;
+import com.bjfu.fortree.repository.file.OssFileRepository;
 import com.bjfu.fortree.repository.job.ApplyJobRepository;
 import com.bjfu.fortree.repository.user.AuthorityRepository;
 import com.bjfu.fortree.repository.user.UserRepository;
@@ -24,13 +28,9 @@ import com.bjfu.fortree.repository.woodland.RecordRepository;
 import com.bjfu.fortree.repository.woodland.TreeRepository;
 import com.bjfu.fortree.repository.woodland.WoodlandRepository;
 import com.bjfu.fortree.pojo.request.woodland.*;
+import com.bjfu.fortree.service.OssService;
 import com.bjfu.fortree.service.WoodlandService;
 import com.bjfu.fortree.pojo.vo.PageVO;
-import org.geolatte.geom.G2D;
-import org.geolatte.geom.Polygon;
-import org.geolatte.geom.PositionSequence;
-import org.geolatte.geom.PositionSequenceBuilders;
-import org.geolatte.geom.crs.CrsRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -40,9 +40,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.persistence.criteria.Predicate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -62,6 +62,10 @@ public class WoodlandServiceImpl implements WoodlandService {
     private ApplyJobRepository applyJobRepository;
     @Autowired
     private ApprovedOperationDispatch approvedOperationDispatch;
+    @Autowired
+    private OssService ossService;
+    @Autowired
+    private OssFileRepository ossFileRepository;
 
     @Override
     @Transactional(rollbackFor = RuntimeException.class)
@@ -148,6 +152,58 @@ public class WoodlandServiceImpl implements WoodlandService {
             return new ApplyJobDTO(passedApply);
         } else {
             ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.ADD_TREES_IN_RECORD, applyParam);
+            // 将需要审批的请求申请落库
+            applyJobRepository.save(apply);
+            return new ApplyJobDTO(apply);
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = RuntimeException.class)
+    public ApplyJobDTO addTreesByExcel(String userAccount, AddTreesByExcelRequest addTreesByExcelRequest) {
+        // 查找用户、记录、用户拥有的权限
+        Optional<User> userOptional = userRepository.findByAccount(userAccount);
+        if(userOptional.isEmpty()) {
+            throw new SystemWrongException(ResultEnum.USER_SESSION_WRONG);
+        }
+        User user = userOptional.get();
+        Optional<Record> recordOptional = recordRepository.findByIdForUpdate(addTreesByExcelRequest.getRecordId());
+        if(recordOptional.isEmpty()) {
+            throw new WrongParamException(ResultEnum.RECORD_NOT_EXIST);
+        }
+        String ossObjectName = UUID.randomUUID().toString();
+        try {
+            ossService.putObject(MinioConfig.APPLY_EXCEL_BUCKET_NAME, ossObjectName, addTreesByExcelRequest.getFile().getInputStream());
+        } catch (IOException e) {
+            throw new WrongParamException(ResultEnum.FILE_UPLOAD_FAILED);
+        }
+        // 记录上传oss的文件信息
+        OssFile ossFile = new OssFile();
+        ossFile.setFileName(addTreesByExcelRequest.getFileName());
+        ossFile.setType(FileTypeEnum.USER_APPLY_FILE);
+        ossFile.setOssBucketName(MinioConfig.APPLY_EXCEL_BUCKET_NAME);
+        ossFile.setOssObjectName(ossObjectName);
+        Calendar calendar = new GregorianCalendar();
+        calendar.setTime(new Date());
+        calendar.add(Calendar.DAY_OF_MONTH, 1);
+        ossFile.setExpiresTime(calendar.getTime());
+        ossFileRepository.save(ossFile);
+
+        Record record = recordOptional.get();
+        String applyParam = addTreesByExcelRequest.getRecordId().toString();
+        if(authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.ADD_TREES_IN_ANY_RECORD) ||
+                record.getWoodland().getCreator().getId().equals(user.getId()) ||
+                record.getCreator().getId().equals(user.getId())) {
+            // 根据权限、林地创建人及记录创建人判断不需要审批则直接保存审批通过的申请
+            ApplyJob passedApply = ApplyJob.createPassedApply(user, ApplyJobTypeEnum.ADD_TREES_BY_EXCEL_IN_RECORD, applyParam);
+            passedApply.setDownloadFile(ossFile);
+            applyJobRepository.save(passedApply);
+            // 执行审批通过后的操作器来落库
+            approvedOperationDispatch.dispatch(passedApply);
+            return new ApplyJobDTO(passedApply);
+        } else {
+            ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.ADD_TREES_BY_EXCEL_IN_RECORD, applyParam);
+            apply.setDownloadFile(ossFile);
             // 将需要审批的请求申请落库
             applyJobRepository.save(apply);
             return new ApplyJobDTO(apply);
@@ -395,16 +451,6 @@ public class WoodlandServiceImpl implements WoodlandService {
     }
 
     @Override
-    public List<WoodlandDTO> getWoodlandsInRectangleBounds(GetWoodlandsInRectangleBoundsRequest getWoodlandsInRectangleBoundsRequest) {
-        Polygon<G2D> polygon = createPolygon(getWoodlandsInRectangleBoundsRequest.getNeLng(), getWoodlandsInRectangleBoundsRequest.getNeLat(),
-                getWoodlandsInRectangleBoundsRequest.getSwLng(), getWoodlandsInRectangleBoundsRequest.getSwLat());
-        return woodlandRepository.findWoodlandsInBounds(polygon)
-                .stream()
-                .map(WoodlandDTO::new)
-                .collect(Collectors.toList());
-    }
-
-    @Override
     public PageVO<TreeDTO> getTrees(GetTreesRequest getTreesRequest) {
         Optional<Record> recordOptional = recordRepository.findById(getTreesRequest.getRecordId());
         if(recordOptional.isEmpty()) {
@@ -429,18 +475,6 @@ public class WoodlandServiceImpl implements WoodlandService {
         }, pageRequest);
         List<TreeDTO> treeDtoS = trees.getContent().stream().map(TreeDTO::new).collect(Collectors.toList());
         return new PageVO<>(trees.getTotalElements(), treeDtoS);
-    }
-
-    private Polygon<G2D> createPolygon(Double neLng, Double neLat, Double swLng, Double swLat) {
-        PositionSequence<G2D> wgs84positionSequence =
-                PositionSequenceBuilders.fixedSized(5, G2D.class)
-                        .add(new G2D(neLng, neLat))
-                        .add(new G2D(neLng, swLat))
-                        .add(new G2D(swLng, swLat))
-                        .add(new G2D(swLng, neLat))
-                        .add(new G2D(neLng, neLat))
-                        .toPositionSequence();
-        return new Polygon(wgs84positionSequence, CrsRegistry.getCoordinateReferenceSystemForEPSG(4326, null));
     }
 
 }

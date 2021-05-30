@@ -17,6 +17,11 @@ import org.springframework.scheduling.annotation.EnableAsync;
 public class ForTreeApplication {
 
 	public static void main(String[] args) {
+		// todo 申请的详情需要在前端可以看出来
+		// todo 后端异常处理链路
+		// todo 前端异常响应码拦截
+		// todo 前端多边形excel导出接入
+		// todo 前端部署时路由问题
 		SpringApplication.run(ForTreeApplication.class, args);
 	}
 
