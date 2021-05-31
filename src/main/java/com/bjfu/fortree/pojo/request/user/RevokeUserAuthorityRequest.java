@@ -1,10 +1,12 @@
 package com.bjfu.fortree.pojo.request.user;
 
+import com.bjfu.fortree.enums.entity.AuthorityTypeEnum;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * 撤销用户权限的请求
@@ -18,6 +20,6 @@ public class RevokeUserAuthorityRequest {
     private String account;
 
     @NotNull(message = "撤销的权限列表不能为空!")
-    private String[] authorities;
+    private List<AuthorityTypeEnum> authorities;
 
 }

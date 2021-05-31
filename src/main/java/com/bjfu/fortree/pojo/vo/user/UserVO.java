@@ -16,6 +16,11 @@ public class UserVO {
         BeanUtils.copyProperties(userDTO, this);
     }
 
+    public UserVO(UserDTO userDTO, String token) {
+        BeanUtils.copyProperties(userDTO, this);
+        this.token = token;
+    }
+
     /**
      * 用户名
      */
@@ -36,4 +41,8 @@ public class UserVO {
      * 账号状态
      */
     private UserStateEnum state;
+    /**
+     * token
+     */
+    private String token;
 }

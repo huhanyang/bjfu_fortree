@@ -8,7 +8,6 @@ import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.pojo.request.woodland.*;
 import com.bjfu.fortree.security.annotation.RequireLogin;
 import com.bjfu.fortree.service.WoodlandService;
-import com.bjfu.fortree.util.SessionUtil;
 import com.bjfu.fortree.pojo.vo.BaseResult;
 import com.bjfu.fortree.pojo.vo.PageVO;
 import com.bjfu.fortree.pojo.vo.apply.ApplyJobVO;

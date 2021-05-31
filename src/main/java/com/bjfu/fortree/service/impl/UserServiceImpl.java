@@ -1,24 +1,20 @@
 package com.bjfu.fortree.service.impl;
 
+import com.bjfu.fortree.exception.BizException;
 import com.bjfu.fortree.pojo.dto.user.UserDTO;
-import com.bjfu.fortree.pojo.dto.user.UserWithAuthoritiesAndWoodlandsDTO;
-import com.bjfu.fortree.pojo.dto.user.UserWithAuthoritiesDTO;
 import com.bjfu.fortree.pojo.entity.user.Authority;
 import com.bjfu.fortree.pojo.entity.user.User;
-import com.bjfu.fortree.pojo.entity.woodland.Woodland;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.enums.entity.AuthorityTypeEnum;
 import com.bjfu.fortree.enums.entity.UserStateEnum;
 import com.bjfu.fortree.enums.entity.UserTypeEnum;
-import com.bjfu.fortree.exception.NotAllowedOperationException;
 import com.bjfu.fortree.exception.SystemWrongException;
 import com.bjfu.fortree.exception.WrongParamException;
 import com.bjfu.fortree.repository.user.AuthorityRepository;
 import com.bjfu.fortree.repository.user.UserRepository;
-import com.bjfu.fortree.repository.woodland.WoodlandRepository;
 import com.bjfu.fortree.pojo.request.user.*;
 import com.bjfu.fortree.service.UserService;
-import com.bjfu.fortree.pojo.vo.PageVO;
+import com.bjfu.fortree.util.EncryptionUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
@@ -39,156 +35,116 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private WoodlandRepository woodlandRepository;
-    @Autowired
     private AuthorityRepository authorityRepository;
 
     @Override
-    public UserWithAuthoritiesDTO loginCheck(LoginCheckRequest loginCheckRequest) {
+    public UserDTO login(LoginCheckRequest request) {
         // 根据账号查询用户信息
-        Optional<User> userOptional = userRepository.findByAccount(loginCheckRequest.getAccount());
-        if(userOptional.isPresent()) {
-            // 用户存在则检查密码是否匹配
-            User user = userOptional.get();
-            if(user.getPassword().equals(loginCheckRequest.getPassword())) {
-                // 账号密码匹配则返回用户信息
-                if(user.getState().equals(UserStateEnum.BANNED)) {
-                    throw new NotAllowedOperationException(ResultEnum.ACCOUNT_BANNED);
-                }
-                return new UserWithAuthoritiesDTO(user);
-            }
+        User user = userRepository.findByAccount(request.getAccount())
+                .orElseThrow(() -> new BizException(ResultEnum.ACCOUNT_NOT_EXIST_OR_PASSWORD_WRONG));
+        // 判断密码是否匹配
+        if(!user.getPassword().equals(EncryptionUtil.md5Encode(request.getPassword()))) {
+            throw new BizException(ResultEnum.PASSWORD_WRONG);
         }
-        // 用户不存在或密码不匹配则返回null
-        return null;
+        // 判断用户是否被封禁
+        if(user.getState().equals(UserStateEnum.BANNED)) {
+            throw new BizException(ResultEnum.ACCOUNT_BANNED);
+        }
+        // 返回用户信息
+        return new UserDTO(user);
     }
 
     @Override
-    @Transactional(rollbackOn = RuntimeException.class)
-    public UserWithAuthoritiesDTO register(RegisterRequest registerRequest) {
-        // 根据账号加锁查询用户信息
-        Optional<User> userOptional = userRepository.findByAccountForUpdate(registerRequest.getAccount());
-        if(userOptional.isEmpty()) {
-            // 账号不存在则创建保存新用户
-            User user = new User();
-            user.setType(UserTypeEnum.USER);
-            user.setState(UserStateEnum.ACTIVE);
-            BeanUtils.copyProperties(registerRequest, user);
-            user = userRepository.save(user);
-            // 返回用户信息
-            return new UserWithAuthoritiesDTO(user);
-        } else {
-            // 账号存在则返回null
-            return null;
-        }
-    }
-
-    @Override
-    public UserWithAuthoritiesDTO getUserInfoWithAuthorities(String userAccount) {
-        Optional<User> userOptional = userRepository.findByAccount(userAccount);
-        if(userOptional.isEmpty()) {
-            throw new SystemWrongException(ResultEnum.USER_NOT_EXIST);
-        }
-        User user = userOptional.get();
-        return new UserWithAuthoritiesDTO(user);
-    }
-
-    @Override
-    @Transactional(rollbackOn = RuntimeException.class)
-    public UserDTO changePassword(String userAccount, ChangePasswordRequest changePasswordRequest) {
-        // 根据账号加锁查询用户信息
-        Optional<User> userOptional = userRepository.findByAccountForUpdate(userAccount);
-        if(userOptional.isPresent()) {
-            // 用户存在则检查密码是否匹配
-            User user = userOptional.get();
-            if(user.getPassword().equals(changePasswordRequest.getOldPassword())) {
-                // 修改用户的密码并保存
-                user.setPassword(changePasswordRequest.getNewPassword());
-                user = userRepository.save(user);
-                // 返回用户信息
-                return new UserDTO(user);
-            }
-        }
-        // 用户不存在或密码不匹配则返回null
-        return null;
-    }
-
-    @Override
-    public UserWithAuthoritiesAndWoodlandsDTO getUserWithAuthoritiesAndWoodlands(String userAccount) {
-        Optional<User> userOptional = userRepository.findByAccount(userAccount);
-        if(userOptional.isEmpty()) {
-            throw new SystemWrongException(ResultEnum.USER_SESSION_WRONG);
-        }
-        User user = userOptional.get();
-        List<Woodland> woodlands = woodlandRepository.findByCreator(user);
-        return new UserWithAuthoritiesAndWoodlandsDTO(user, woodlands);
-    }
-
-    @Override
-    @Transactional(rollbackOn = RuntimeException.class)
-    public UserWithAuthoritiesDTO grantUserAuthority(GrantUserAuthorityRequest grantUserAuthorityRequest) {
-        // 根据账号加锁查询用户信息
-        Optional<User> userOptional = userRepository.findByAccountForUpdate(grantUserAuthorityRequest.getAccount());
-        if(userOptional.isEmpty()) {
-            // 用户不存在则抛出参数错误异常
-            throw new WrongParamException(ResultEnum.PARAM_WRONG);
-        }
-        User user = userOptional.get();
-        List<Authority> userAuthorities = user.getAuthorities();
-        // 保存用户已经拥有的权限
-        Map<AuthorityTypeEnum, Authority> existAuthorities = userAuthorities.stream()
-                .collect(Collectors.toMap(Authority::getType, authority -> authority));
-        // 系统中所有存在的权限
-        Set<String> authorityTypeEnums =
-                Arrays.stream(AuthorityTypeEnum.values()).map(Enum::name).collect(Collectors.toSet());
-        // 将授权请求中的权限字符串通过权限列表过滤出系统中存在的权限 并过滤掉用户已经拥有的权限 将剩下的权限保存
-        Arrays.stream(grantUserAuthorityRequest.getAuthorities())
-                .filter(authorityTypeEnums::contains)
-                .map(AuthorityTypeEnum::valueOf)
-                .filter(type -> !existAuthorities.containsKey(type))
-                .forEach(type -> {
-                    Authority authority = new Authority();
-                    authority.setUser(userOptional.get());
-                    authority.setType(type);
-                    userAuthorities.add(authority);
-                });
-        // 保存新的权限列表并返回新的用户信息
-        user = userRepository.save(user);
-        return new UserWithAuthoritiesDTO(user);
-    }
-
-    @Override
-    @Transactional(rollbackOn = RuntimeException.class)
-    public UserWithAuthoritiesDTO revokeUserAuthority(RevokeUserAuthorityRequest revokeUserAuthorityRequest) {
-        // 根据账号加锁查询用户信息
-        Optional<User> userOptional = userRepository.findByAccountForUpdate(revokeUserAuthorityRequest.getAccount());
-        if(userOptional.isEmpty()) {
-            // 用户不存在则抛出参数错误异常
-            throw new WrongParamException(ResultEnum.PARAM_WRONG);
-        }
-        User user = userOptional.get();
-        List<Authority> userAuthorities = user.getAuthorities();
-        // 保存用户已经拥有的权限
-        Map<AuthorityTypeEnum, Authority> existAuthorities = userAuthorities.stream()
-                .collect(Collectors.toMap(Authority::getType, authority -> authority));
-        // 系统中所有存在的权限
-        Set<String> authorityTypeEnums =
-                Arrays.stream(AuthorityTypeEnum.values()).map(Enum::name).collect(Collectors.toSet());
-        // 将请求中的权限字符串通过权限列表过滤出系统中存在的权限 并过滤掉用户未曾拥有的权限 将剩下的权限依次删除
-        Arrays.stream(revokeUserAuthorityRequest.getAuthorities())
-                .filter(authorityTypeEnums::contains)
-                .map(AuthorityTypeEnum::valueOf)
-                .filter(existAuthorities::containsKey)
-                .forEach(type -> {
-                    userAuthorities.remove(existAuthorities.get(type));
-                    authorityRepository.deleteByUserAndType(user, type);
-                });
-        // 保存新的权限列表
+    @Transactional
+    public UserDTO register(RegisterRequest request) {
+        // 判断账号是否存在
+        userRepository.findByAccountForUpdate(request.getAccount()).ifPresent((user) -> {
+            throw new BizException(ResultEnum.ACCOUNT_EXIST);
+        });
+        // 创建新用户
+        User user = new User();
+        user.setType(UserTypeEnum.USER);
+        user.setState(UserStateEnum.ACTIVE);
+        BeanUtils.copyProperties(request, user);
+        // 落库
         userRepository.save(user);
-        return new UserWithAuthoritiesDTO(user);
+        // 返回用户信息
+        return new UserDTO(user);
     }
 
     @Override
-    public PageVO<UserDTO> getUsers(GetUsersRequest getUsersRequest) {
+    public UserDTO getInfo(String userAccount) {
+        User user = userRepository.findByAccount(userAccount)
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
+        return new UserDTO(user);
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(String userAccount, ChangePasswordRequest request) {
+        // 根据账号加锁查询用户信息
+        User user = userRepository.findByAccountForUpdate(userAccount)
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
+        // 密码验证
+        if(!user.getPassword().equals(EncryptionUtil.md5Encode(request.getOldPassword()))) {
+            throw new BizException(ResultEnum.PASSWORD_WRONG);
+        }
+        // 修改密码
+        user.setPassword(EncryptionUtil.md5Encode(request.getNewPassword()));
+        // 落库
+        userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void grantUserAuthority(GrantUserAuthorityRequest request) {
+        // 根据账号加锁查询用户信息
+        User user = userRepository.findByAccountForUpdate(request.getAccount())
+                .orElseThrow(() -> new WrongParamException(ResultEnum.USER_NOT_EXIST));
+        // 获取用户当前拥有的权限
+        List<Authority> userAuthorities = user.getAuthorities();
+        // 创建用户当前存在的权限列表
+        Set<AuthorityTypeEnum> existAuthorities = userAuthorities.stream()
+                .map(Authority::getType)
+                .collect(Collectors.toSet());
+        // 过滤出当前不存在的权限
+        List<Authority> authorities = request.getAuthorities()
+                .stream()
+                .filter(type -> !existAuthorities.contains(type))
+                .map(type -> {
+                    Authority authority = new Authority();
+                    authority.setUser(user);
+                    authority.setType(type);
+                    return authority;
+                })
+                .collect(Collectors.toList());
+        // 保存不存在的权限
+        authorityRepository.saveAll(authorities);
+    }
+
+    @Override
+    @Transactional
+    public void revokeUserAuthority(RevokeUserAuthorityRequest request) {
+        // 根据账号加锁查询用户信息
+        User user = userRepository.findByAccountForUpdate(request.getAccount())
+                .orElseThrow(() -> new WrongParamException(ResultEnum.USER_NOT_EXIST));
+        // 获取用户当前拥有的权限
+        List<Authority> userAuthorities = user.getAuthorities();
+        // 创建权限与权限实体对应关系
+        Map<AuthorityTypeEnum, Authority> existAuthorities = userAuthorities.stream()
+                .collect(Collectors.toMap(Authority::getType, authority -> authority));
+        // 过滤出存在的权限
+        List<Authority> needDeleteAuthorities = request.getAuthorities()
+                .stream()
+                .map(existAuthorities::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        // 删除存在的权限列表
+        authorityRepository.deleteAll(needDeleteAuthorities);
+    }
+
+    @Override
+    public Page<UserDTO> getUsers(GetUsersRequest getUsersRequest) {
         PageRequest pageRequest = PageRequest.of(getUsersRequest.getCurrent() - 1, getUsersRequest.getPageSize());
         if(getUsersRequest.getField() != null) {
             Sort sort = Sort.by(new Sort.Order(getUsersRequest.getOrder(), getUsersRequest.getField()));
@@ -213,19 +169,17 @@ public class UserServiceImpl implements UserService {
             }
             return query.where(predicates.toArray(new Predicate[0])).getRestriction();
         }, pageRequest);
-        List<UserDTO> userDTOS = users.getContent().stream().map(UserDTO::new).collect(Collectors.toList());
-        return new PageVO<>(users.getTotalElements(), userDTOS);
+        return users.map(UserDTO::new);
     }
 
     @Override
-    public UserDTO changeUserState(ChangeUserStateRequest changeUserStateRequest) {
-        Optional<User> userOptional = userRepository.findByAccount(changeUserStateRequest.getAccount());
-        if(userOptional.isEmpty()) {
-            throw new WrongParamException(ResultEnum.PARAM_WRONG);
-        }
-        User user = userOptional.get();
-        user.setState(changeUserStateRequest.getNewState());
-        user = userRepository.save(user);
-        return new UserDTO(user);
+    public void changeUserState(ChangeUserStateRequest request) {
+        // 查询用户
+        User user = userRepository.findByAccount(request.getAccount())
+                .orElseThrow(() -> new WrongParamException(ResultEnum.USER_NOT_EXIST));
+        // 修改状态
+        user.setState(request.getNewState());
+        // 落库
+        userRepository.save(user);
     }
 }

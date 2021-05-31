@@ -1,10 +1,8 @@
 package com.bjfu.fortree.service;
 
 import com.bjfu.fortree.pojo.dto.user.UserDTO;
-import com.bjfu.fortree.pojo.dto.user.UserWithAuthoritiesAndWoodlandsDTO;
-import com.bjfu.fortree.pojo.dto.user.UserWithAuthoritiesDTO;
 import com.bjfu.fortree.pojo.request.user.*;
-import com.bjfu.fortree.pojo.vo.PageVO;
+import org.springframework.data.domain.Page;
 
 /**
  * 用户相关操作
@@ -14,65 +12,54 @@ public interface UserService {
 
     /**
      * 登录检查
-     * @param loginCheckRequest 登录请求
-     * @return 带有权限的用户信息 账号密码不匹配则返回null
+     * @param request 登录请求
+     * @return 用户信息
      */
-    UserWithAuthoritiesDTO loginCheck(LoginCheckRequest loginCheckRequest);
+    UserDTO login(LoginCheckRequest request);
 
     /**
      * 用户注册
-     * @param registerRequest 注册请求
-     * @return 带有权限的用户信息 账号已经存在则返回null
+     * @param request 注册请求
+     * @return 用户信息
      */
-    UserWithAuthoritiesDTO register(RegisterRequest registerRequest);
+    UserDTO register(RegisterRequest request);
 
     /**
      * 获取用户信息
-     * @param userAccount 用户账号
-     * @return 带有权限的用户信息
+     * @param userAccount 账号
+     * @return 用户信息
      */
-    UserWithAuthoritiesDTO getUserInfoWithAuthorities(String userAccount);
+    UserDTO getInfo(String userAccount);
 
     /**
      * 修改密码
      * @param userAccount 用户账号
-     * @param changePasswordRequest 更改密码请求
-     * @return 用户信息 账号密码不匹配则返回null
+     * @param request 更改密码请求
      */
-    UserDTO changePassword(String userAccount, ChangePasswordRequest changePasswordRequest);
-
-    /**
-     * 获取用户信息带有权限列表以及创建的林地列表
-     * @param userAccount 用户账号
-     * @return 用户信息 有权限列表以及创建的林地列表
-     */
-    UserWithAuthoritiesAndWoodlandsDTO getUserWithAuthoritiesAndWoodlands(String userAccount);
+    void changePassword(String userAccount, ChangePasswordRequest request);
 
     /**
      * 为用户授权
-     * @param grantUserAuthorityRequest 授权请求
-     * @return 更新后的带有权限的用户信息
+     * @param request 授权请求
      */
-    UserWithAuthoritiesDTO grantUserAuthority(GrantUserAuthorityRequest grantUserAuthorityRequest);
+    void grantUserAuthority(GrantUserAuthorityRequest request);
 
     /**
      * 撤销权限
-     * @param revokeUserAuthorityRequest 撤销权限请求
-     * @return 更新后的带有权限的用户信息
+     * @param request 撤销权限请求
      */
-    UserWithAuthoritiesDTO revokeUserAuthority(RevokeUserAuthorityRequest revokeUserAuthorityRequest);
+    void revokeUserAuthority(RevokeUserAuthorityRequest request);
 
     /**
-     * 获取所有用户
-     * @param getUsersRequest 请求
-     * @return 分页后的用户
+     * 分页获取用户信息
+     * @param request 请求
+     * @return 分页后的用户信息
      */
-    PageVO<UserDTO> getUsers(GetUsersRequest getUsersRequest);
+    Page<UserDTO> getUsers(GetUsersRequest request);
 
     /**
      * 更改用户的状态
-     * @param changeUserStateRequest 请求
-     * @return 用户信息
+     * @param request 请求
      */
-    UserDTO changeUserState(ChangeUserStateRequest changeUserStateRequest);
+    void changeUserState(ChangeUserStateRequest request);
 }

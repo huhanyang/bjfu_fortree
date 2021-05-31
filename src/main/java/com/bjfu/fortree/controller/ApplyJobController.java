@@ -9,7 +9,6 @@ import com.bjfu.fortree.pojo.request.apply.GetMyApplyJobRequest;
 import com.bjfu.fortree.security.annotation.RequireAdmin;
 import com.bjfu.fortree.security.annotation.RequireLogin;
 import com.bjfu.fortree.service.ApplyJobService;
-import com.bjfu.fortree.util.SessionUtil;
 import com.bjfu.fortree.pojo.vo.BaseResult;
 import com.bjfu.fortree.pojo.vo.PageVO;
 import com.bjfu.fortree.pojo.vo.apply.ApplyJobVO;

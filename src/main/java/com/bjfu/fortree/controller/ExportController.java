@@ -8,7 +8,6 @@ import com.bjfu.fortree.pojo.request.export.ExportWoodlandsInfoRequest;
 import com.bjfu.fortree.security.annotation.RequireLogin;
 import com.bjfu.fortree.service.ExportService;
 import com.bjfu.fortree.util.ResponseUtil;
-import com.bjfu.fortree.util.SessionUtil;
 import com.bjfu.fortree.pojo.vo.BaseResult;
 import com.bjfu.fortree.pojo.vo.apply.ApplyJobVO;
 import org.springframework.beans.factory.annotation.Autowired;

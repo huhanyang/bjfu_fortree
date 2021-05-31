@@ -1,28 +1,22 @@
 package com.bjfu.fortree.controller;
 
+import com.bjfu.fortree.exception.SystemWrongException;
 import com.bjfu.fortree.pojo.dto.user.UserDTO;
-import com.bjfu.fortree.pojo.dto.user.UserWithAuthoritiesAndWoodlandsDTO;
-import com.bjfu.fortree.pojo.dto.user.UserWithAuthoritiesDTO;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.pojo.request.user.*;
 import com.bjfu.fortree.security.annotation.RequireAdmin;
 import com.bjfu.fortree.security.annotation.RequireLogin;
 import com.bjfu.fortree.service.UserService;
-import com.bjfu.fortree.util.SessionUtil;
 import com.bjfu.fortree.pojo.vo.BaseResult;
-import com.bjfu.fortree.pojo.vo.PageVO;
 import com.bjfu.fortree.pojo.vo.user.UserVO;
-import com.bjfu.fortree.pojo.vo.user.UserWithAuthoritiesAndWoodlandsVO;
-import com.bjfu.fortree.pojo.vo.user.UserWithAuthoritiesVO;
-import org.hibernate.validator.constraints.Length;
+import com.bjfu.fortree.util.JwtUtil;
+import com.bjfu.fortree.util.UserInfoContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpSession;
-import javax.validation.constraints.NotBlank;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Collections;
 
 /**
  * 用户相关操作接口
@@ -36,108 +30,66 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @PostMapping("/loginCheck")
-    public BaseResult<UserWithAuthoritiesVO> loginCheck(@Validated @RequestBody LoginCheckRequest loginCheckRequest, HttpSession session) {
-        UserWithAuthoritiesDTO userWithAuthoritiesDTO = userService.loginCheck(loginCheckRequest);
-        if(userWithAuthoritiesDTO == null) {
-            return new BaseResult<>(ResultEnum.ACCOUNT_NOT_EXIST_OR_PASSWORD_WRONG);
-        }
-        SessionUtil.initSession(session, userWithAuthoritiesDTO, loginCheckRequest.getRemember());
-        return new BaseResult<>(ResultEnum.SUCCESS, new UserWithAuthoritiesVO(userWithAuthoritiesDTO));
+    @PostMapping("/login")
+    public BaseResult<UserVO> login(@Validated @RequestBody LoginCheckRequest request) {
+        UserDTO userDTO = userService.login(request);
+        // 生成Token
+        String token = JwtUtil.generateToken(Collections.singletonMap("userAccount", userDTO.getAccount()));
+        return new BaseResult<>(ResultEnum.SUCCESS, new UserVO(userDTO, token));
     }
 
-    @PutMapping("/register")
-    public BaseResult<UserWithAuthoritiesVO> register(@Validated @RequestBody RegisterRequest registerRequest, HttpSession session) {
-        UserWithAuthoritiesDTO userWithAuthoritiesDTO = userService.register(registerRequest);
-        if(userWithAuthoritiesDTO == null) {
-            return new BaseResult<>(ResultEnum.ACCOUNT_EXIST);
-        }
-        SessionUtil.initSession(session, userWithAuthoritiesDTO, false);
-        return new BaseResult<>(ResultEnum.SUCCESS, new UserWithAuthoritiesVO(userWithAuthoritiesDTO));
+    @PostMapping("/register")
+    public BaseResult<UserVO> register(@Validated @RequestBody RegisterRequest request) {
+        UserDTO userDTO = userService.register(request);
+        // 生成Token
+        String token = JwtUtil.generateToken(Collections.singletonMap("userAccount", userDTO.getAccount()));
+        return new BaseResult<>(ResultEnum.SUCCESS, new UserVO(userDTO, token));
     }
 
     @RequireLogin
     @PostMapping("/changePassword")
-    public BaseResult<UserVO> changePassword(@Validated @RequestBody ChangePasswordRequest changePasswordRequest, HttpSession session) {
-        String userAccount = SessionUtil.getUserInfo(session).getAccount();
-        UserDTO userDTO = userService.changePassword(userAccount, changePasswordRequest);
-        if(userDTO == null) {
-            return new BaseResult<>(ResultEnum.ACCOUNT_NOT_EXIST_OR_PASSWORD_WRONG);
-        }
-        SessionUtil.deleteSession(session);
-        return new BaseResult<>(ResultEnum.SUCCESS, new UserVO(userDTO));
-    }
-
-    @RequireLogin
-    @GetMapping("/getInfoWithAuthorities")
-    public BaseResult<UserWithAuthoritiesVO> getInfoWithAuthorities(HttpSession session) {
-        String userAccount = SessionUtil.getUserInfo(session).getAccount();
-        UserWithAuthoritiesDTO userWithAuthoritiesDTO =
-                userService.getUserInfoWithAuthorities(userAccount);
-        return new BaseResult<>(ResultEnum.SUCCESS, new UserWithAuthoritiesVO(userWithAuthoritiesDTO));
-    }
-
-    @RequireLogin
-    @GetMapping("/getInfoWithAuthoritiesAndWoodlands")
-    public BaseResult<UserWithAuthoritiesAndWoodlandsVO> getInfoWithAuthoritiesAndWoodlands(HttpSession session) {
-        String userAccount = SessionUtil.getUserInfo(session).getAccount();
-        UserWithAuthoritiesAndWoodlandsDTO userWithAuthoritiesAndWoodlands =
-                userService.getUserWithAuthoritiesAndWoodlands(userAccount);
-        return new BaseResult<>(ResultEnum.SUCCESS, new UserWithAuthoritiesAndWoodlandsVO(userWithAuthoritiesAndWoodlands));
-    }
-
-    @RequireLogin
-    @GetMapping("/getUserInfoWithAuthorities")
-    public BaseResult<UserWithAuthoritiesVO> getUserInfoWithAuthorities(@NotBlank(message = "账号不能为空!")
-                                                                        @Length(min = 8, max = 32, message = "账号长度在8-32位!")
-                                                                        String account) {
-        UserWithAuthoritiesDTO userWithAuthoritiesDTO = userService.getUserInfoWithAuthorities(account);
-        return new BaseResult<>(ResultEnum.SUCCESS, new UserWithAuthoritiesVO(userWithAuthoritiesDTO));
-    }
-
-    @RequireLogin
-    @GetMapping("/logout")
-    public BaseResult<Void> logout(HttpSession session) {
-        SessionUtil.deleteSession(session);
+    public BaseResult<Void> changePassword(@Validated @RequestBody ChangePasswordRequest request) {
+        UserDTO userInfo = UserInfoContextUtil.getUserInfo()
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.USER_INFO_CONTEXT_WRONG));
+        userService.changePassword(userInfo.getAccount(), request);
         return new BaseResult<>(ResultEnum.SUCCESS);
+    }
+
+    @RequireLogin
+    @GetMapping("/getInfo")
+    public BaseResult<UserVO> getInfo() {
+        UserDTO userInfo = UserInfoContextUtil.getUserInfo()
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.USER_INFO_CONTEXT_WRONG));
+        UserDTO userDTO = userService.getInfo(userInfo.getAccount());
+        return new BaseResult<>(ResultEnum.SUCCESS, new UserVO(userDTO));
     }
 
     @RequireAdmin
     @PostMapping("/grantUserAuthority")
-    public BaseResult<UserWithAuthoritiesVO> grantUserAuthority(@Validated @RequestBody GrantUserAuthorityRequest grantUserAuthorityRequest) {
-        UserWithAuthoritiesDTO userWithAuthoritiesDTO =
-                userService.grantUserAuthority(grantUserAuthorityRequest);
-        return new BaseResult<>(ResultEnum.SUCCESS, new UserWithAuthoritiesVO(userWithAuthoritiesDTO));
+    public BaseResult<Void> grantUserAuthority(@Validated @RequestBody GrantUserAuthorityRequest request) {
+        userService.grantUserAuthority(request);
+        return new BaseResult<>(ResultEnum.SUCCESS);
     }
 
     @RequireAdmin
     @PostMapping("/revokeUserAuthority")
-    public BaseResult<UserWithAuthoritiesVO> revokeUserAuthority(@Validated @RequestBody RevokeUserAuthorityRequest revokeUserAuthorityRequest) {
-        UserWithAuthoritiesDTO userWithAuthoritiesDTO =
-                userService.revokeUserAuthority(revokeUserAuthorityRequest);
-        return new BaseResult<>(ResultEnum.SUCCESS, new UserWithAuthoritiesVO(userWithAuthoritiesDTO));
+    public BaseResult<Void> revokeUserAuthority(@Validated @RequestBody RevokeUserAuthorityRequest request) {
+        userService.revokeUserAuthority(request);
+        return new BaseResult<>(ResultEnum.SUCCESS);
     }
 
     @RequireAdmin
     @PostMapping("/getUsers")
-    public BaseResult<PageVO<UserVO>> getUsers(@Validated @RequestBody GetUsersRequest getUsersRequest) {
-        PageVO<UserDTO> users = userService.getUsers(getUsersRequest);
-        List<UserVO> userVOList = users.getContents().stream()
-                .map(UserVO::new)
-                .collect(Collectors.toList());
-        PageVO<UserVO> pageVO = new PageVO<>(users.getCount(), userVOList);
-        return new BaseResult<>(ResultEnum.SUCCESS, pageVO);
+    public BaseResult<Page<UserVO>> getUsers(@Validated @RequestBody GetUsersRequest request) {
+        Page<UserDTO> userDTOS = userService.getUsers(request);
+        return new BaseResult<>(ResultEnum.SUCCESS, userDTOS.map(UserVO::new));
     }
 
     @RequireAdmin
     @PostMapping("/changeUserState")
-    public BaseResult<UserVO> changeUserState(@Validated @RequestBody ChangeUserStateRequest changeUserStateRequest,
-                                              HttpSession session) {
-        if(SessionUtil.getUserInfo(session).getAccount().equals(changeUserStateRequest.getAccount())) {
-            return new BaseResult<>(ResultEnum.PARAM_WRONG.getCode(), "不允许操作自己账号的状态");
-        }
-        UserDTO userDTO = userService.changeUserState(changeUserStateRequest);
-        return new BaseResult<>(ResultEnum.SUCCESS, new UserVO(userDTO));
+    public BaseResult<Void> changeUserState(@Validated @RequestBody ChangeUserStateRequest request) {
+        userService.changeUserState(request);
+        return new BaseResult<>(ResultEnum.SUCCESS);
     }
 
 }

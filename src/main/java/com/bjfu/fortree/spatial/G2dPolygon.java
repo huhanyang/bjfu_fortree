@@ -27,11 +27,9 @@ public class G2dPolygon {
 
     public G2dPolygon(Polygon<G2D> polygon) {
         List<G2dPoint> list = new ArrayList<>();
-        Arrays.stream(polygon.components()).findFirst().ifPresent(g2dLinearRing -> {
-            g2dLinearRing.getPositions().forEach(g2D -> {
-                list.add(new G2dPoint(g2D.getLon(), g2D.getLat()));
-            });
-        });
+        Arrays.stream(polygon.components())
+                .findFirst()
+                .ifPresent(g2dLinearRing -> g2dLinearRing.getPositions().forEach(g2D -> list.add(new G2dPoint(g2D.getLon(), g2D.getLat()))));
         this.g2dPointList = list;
     }
 
@@ -44,7 +42,8 @@ public class G2dPolygon {
     public static Polygon<G2D> convertToGeom(G2dPolygon g2dPolygon) {
         G2D[] g2dS = g2dPolygon.getG2dPointList()
                 .stream()
-                .map(g2dPoint -> g(g2dPoint.getLongitude(), g2dPoint.getLatitude())).toArray(G2D[]::new);
+                .map(g2dPoint -> g(g2dPoint.getLongitude(), g2dPoint.getLatitude()))
+                .toArray(G2D[]::new);
         return polygon(WGS84, ring(g2dS));
     }
 
