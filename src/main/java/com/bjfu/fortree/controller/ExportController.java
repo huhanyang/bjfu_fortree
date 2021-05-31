@@ -1,8 +1,10 @@
 package com.bjfu.fortree.controller;
 
+import com.bjfu.fortree.exception.SystemWrongException;
 import com.bjfu.fortree.pojo.dto.job.ApplyJobDTO;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.exception.ExportExcelException;
+import com.bjfu.fortree.pojo.dto.user.UserDTO;
 import com.bjfu.fortree.pojo.request.export.ExportWoodlandsInBoundsRequest;
 import com.bjfu.fortree.pojo.request.export.ExportWoodlandsInfoRequest;
 import com.bjfu.fortree.security.annotation.RequireLogin;
@@ -10,6 +12,7 @@ import com.bjfu.fortree.service.ExportService;
 import com.bjfu.fortree.util.ResponseUtil;
 import com.bjfu.fortree.pojo.vo.BaseResult;
 import com.bjfu.fortree.pojo.vo.apply.ApplyJobVO;
+import com.bjfu.fortree.util.UserInfoContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
 
@@ -27,9 +29,9 @@ import java.io.IOException;
  * 导出相关操作接口
  * @author warthog
  */
+@Validated
 @RestController
 @RequestMapping("/export")
-@Validated
 public class ExportController {
 
     @Autowired
@@ -51,19 +53,19 @@ public class ExportController {
 
     @RequireLogin
     @PostMapping("/exportWoodlandsInfo")
-    public BaseResult<ApplyJobVO> exportWoodlandsInfo(@Validated @RequestBody ExportWoodlandsInfoRequest request,
-                                                      HttpSession session) {
-        String userAccount = SessionUtil.getUserInfo(session).getAccount();
-        ApplyJobDTO applyJobDTO = exportService.exportWoodlandsInfo(userAccount, request.getIds());
+    public BaseResult<ApplyJobVO> exportWoodlandsInfo(@Validated @RequestBody ExportWoodlandsInfoRequest request) {
+        UserDTO userInfo = UserInfoContextUtil.getUserInfo()
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.USER_INFO_CONTEXT_WRONG));
+        ApplyJobDTO applyJobDTO = exportService.exportWoodlandsInfo(userInfo.getAccount(), request.getIds());
         return new BaseResult<>(ResultEnum.SUCCESS, new ApplyJobVO(applyJobDTO));
     }
 
     @RequireLogin
     @PostMapping("/exportWoodlandsInfoInBounds")
-    public BaseResult<ApplyJobVO> exportWoodlandsInfoInBounds(@Validated @RequestBody ExportWoodlandsInBoundsRequest request,
-                                                      HttpSession session) {
-        String userAccount = SessionUtil.getUserInfo(session).getAccount();
-        ApplyJobDTO applyJobDTO = exportService.exportWoodlandsInfoInBounds(userAccount, request);
+    public BaseResult<ApplyJobVO> exportWoodlandsInfoInBounds(@Validated @RequestBody ExportWoodlandsInBoundsRequest request) {
+        UserDTO userInfo = UserInfoContextUtil.getUserInfo()
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.USER_INFO_CONTEXT_WRONG));
+        ApplyJobDTO applyJobDTO = exportService.exportWoodlandsInfoInBounds(userInfo.getAccount(), request);
         return new BaseResult<>(ResultEnum.SUCCESS, new ApplyJobVO(applyJobDTO));
     }
 

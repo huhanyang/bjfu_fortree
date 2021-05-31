@@ -46,17 +46,17 @@ public class OssFile extends BaseEntity {
     /**
      * 文件过期时间
      */
-    @Column(nullable = false)
+    @Column
     private Date expiresTime;
 
     /**
      * 下载用url
      */
-    @Column(nullable = true, length = 512)
+    @Column(length = 512)
     private String downloadUrl;
     /**
      * 下载用url过期时间
      */
-    @Column(nullable = true)
+    @Column
     private Date downloadUrlExpiresTime;
 }

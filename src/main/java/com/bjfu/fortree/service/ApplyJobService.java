@@ -5,7 +5,7 @@ import com.bjfu.fortree.pojo.dto.job.ApplyJobDTO;
 import com.bjfu.fortree.pojo.request.apply.ApprovalApplyJobRequest;
 import com.bjfu.fortree.pojo.request.apply.GetAllApplyJobRequest;
 import com.bjfu.fortree.pojo.request.apply.GetMyApplyJobRequest;
-import com.bjfu.fortree.pojo.vo.PageVO;
+import org.springframework.data.domain.Page;
 
 /**
  * 审批相关
@@ -14,11 +14,10 @@ import com.bjfu.fortree.pojo.vo.PageVO;
 public interface ApplyJobService {
     /**
      * 获取所有的申请列表
-     * @param getAllApplyJobRequest 请求
-     * @param userAccount 用户账号
+     * @param request 请求
      * @return 申请列表
      */
-    PageVO<ApplyJobDTO> getAllApplyJob(GetAllApplyJobRequest getAllApplyJobRequest, String userAccount);
+    Page<ApplyJobDTO> getAllApplyJob(GetAllApplyJobRequest request);
 
     /**
      * 获取申请详情
@@ -30,19 +29,19 @@ public interface ApplyJobService {
 
     /**
      * 审批此申请
+     * @param request 请求
      * @param userAccount 用户账户
-     * @param approvalApplyJobRequest 请求
      * @return 申请实体
      */
-    ApplyJobDTO approvalApplyJob(String userAccount, ApprovalApplyJobRequest approvalApplyJobRequest);
+    ApplyJobDTO approvalApplyJob(ApprovalApplyJobRequest request, String userAccount);
 
     /**
      * 获取用户创建的申请列表
-     * @param getMyApplyJobRequest 请求
+     * @param request 请求
      * @param userAccount 用户账号
      * @return 申请列表
      */
-    PageVO<ApplyJobDTO> getApplyJobByApplyUser(GetMyApplyJobRequest getMyApplyJobRequest, String userAccount);
+    Page<ApplyJobDTO> getApplyJobByApplyUser(GetMyApplyJobRequest request, String userAccount);
 
     /**
      * 取消申请

@@ -1,6 +1,7 @@
 package com.bjfu.fortree.service.impl;
 
 import com.bjfu.fortree.approval.ApprovedOperationDispatch;
+import com.bjfu.fortree.exception.*;
 import com.bjfu.fortree.pojo.dto.file.FileDownloadDTO;
 import com.bjfu.fortree.pojo.dto.job.ApplyJobDTO;
 import com.bjfu.fortree.pojo.entity.apply.ApplyJob;
@@ -9,10 +10,6 @@ import com.bjfu.fortree.pojo.entity.user.User;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.enums.entity.ApplyJobStateEnum;
 import com.bjfu.fortree.enums.entity.UserTypeEnum;
-import com.bjfu.fortree.exception.NotAllowedOperationException;
-import com.bjfu.fortree.exception.SystemWrongException;
-import com.bjfu.fortree.exception.UnauthorizedOperationException;
-import com.bjfu.fortree.exception.WrongParamException;
 import com.bjfu.fortree.repository.file.OssFileRepository;
 import com.bjfu.fortree.repository.job.ApplyJobRepository;
 import com.bjfu.fortree.repository.user.UserRepository;
@@ -21,7 +18,6 @@ import com.bjfu.fortree.pojo.request.apply.GetAllApplyJobRequest;
 import com.bjfu.fortree.pojo.request.apply.GetMyApplyJobRequest;
 import com.bjfu.fortree.service.ApplyJobService;
 import com.bjfu.fortree.service.OssService;
-import com.bjfu.fortree.pojo.vo.PageVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,7 +28,6 @@ import org.springframework.util.CollectionUtils;
 
 import javax.persistence.criteria.Predicate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author warthog
@@ -52,15 +47,7 @@ public class ApplyJobServiceImpl implements ApplyJobService {
     private ApprovedOperationDispatch approvedOperationDispatch;
 
     @Override
-    public PageVO<ApplyJobDTO> getAllApplyJob(GetAllApplyJobRequest getAllApplyJobRequest, String userAccount) {
-        Optional<User> userOptional = userRepository.findByAccount(userAccount);
-        if(userOptional.isEmpty()) {
-            throw new SystemWrongException(ResultEnum.USER_SESSION_WRONG);
-        }
-        User user = userOptional.get();
-        if(!user.getType().equals(UserTypeEnum.ADMIN)) {
-            throw new UnauthorizedOperationException(ResultEnum.REQUIRE_ADMIN);
-        }
+    public Page<ApplyJobDTO> getAllApplyJob(GetAllApplyJobRequest getAllApplyJobRequest) {
         PageRequest pageRequest = PageRequest.of(getAllApplyJobRequest.getCurrent() - 1, getAllApplyJobRequest.getPageSize());
         if(getAllApplyJobRequest.getField() != null) {
             Sort sort = Sort.by(new Sort.Order(getAllApplyJobRequest.getOrder(), getAllApplyJobRequest.getField()));
@@ -76,73 +63,65 @@ public class ApplyJobServiceImpl implements ApplyJobService {
             }
             return query.where(predicates.toArray(new Predicate[0])).getRestriction();
         }, pageRequest);
-        List<ApplyJobDTO> applyJobDTOList = applyJobs.getContent().stream()
-                .map(ApplyJobDTO::new)
-                .collect(Collectors.toList());
-        return new PageVO<>(applyJobs.getTotalElements(), applyJobDTOList);
+        return applyJobs.map(ApplyJobDTO::new);
     }
 
     @Override
     public ApplyJobDTO getApplyJobDetail(Long applyJobId, String userAccount) {
-        Optional<User> userOptional = userRepository.findByAccount(userAccount);
-        if(userOptional.isEmpty()) {
-            throw new SystemWrongException(ResultEnum.USER_SESSION_WRONG);
-        }
-        User user = userOptional.get();
-        Optional<ApplyJob> applyJobOptional = applyJobRepository.findById(applyJobId);
-        if(applyJobOptional.isEmpty()) {
-            throw new WrongParamException(ResultEnum.APPLYJOB_NOT_EXIST);
-        }
-        ApplyJob applyJob = applyJobOptional.get();
+        User user = userRepository.findByAccount(userAccount)
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
+        ApplyJob applyJob = applyJobRepository.findById(applyJobId)
+                .orElseThrow(() -> new WrongParamException(ResultEnum.APPLYJOB_NOT_EXIST));
         if(!user.getType().equals(UserTypeEnum.ADMIN) &&
                 !applyJob.getApplyUser().getAccount().equals(userAccount)) {
-            throw new UnauthorizedOperationException(ResultEnum.PERMISSION_DENIED);
+            throw new BizException(ResultEnum.PERMISSION_DENIED);
         }
         return new ApplyJobDTO(applyJob);
     }
 
     @Override
-    @Transactional(rollbackFor = RuntimeException.class)
-    public ApplyJobDTO approvalApplyJob(String userAccount, ApprovalApplyJobRequest approvalApplyJobRequest) {
-        Optional<User> userOptional = userRepository.findByAccount(userAccount);
-        if(userOptional.isEmpty()) {
-            throw new SystemWrongException(ResultEnum.USER_SESSION_WRONG);
-        }
-        User user = userOptional.get();
+    @Transactional
+    public ApplyJobDTO approvalApplyJob(ApprovalApplyJobRequest request, String userAccount) {
+        // 获取用户信息
+        User user = userRepository.findByAccount(userAccount)
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
+        // 管理员权限校验
         if(!user.getType().equals(UserTypeEnum.ADMIN)) {
-            throw new UnauthorizedOperationException(ResultEnum.REQUIRE_ADMIN);
+            throw new BizException(ResultEnum.REQUIRE_ADMIN);
         }
-        Optional<ApplyJob> applyJobOptional = applyJobRepository.findByIdForUpdate(approvalApplyJobRequest.getApplyJobId());
-        if(applyJobOptional.isEmpty()) {
-            throw new WrongParamException(ResultEnum.APPLYJOB_NOT_EXIST);
-        }
-        ApplyJob applyJob = applyJobOptional.get();
+        // 获取申请详情并加锁
+        ApplyJob applyJob = applyJobRepository.findByIdForUpdate(request.getApplyJobId())
+                .orElseThrow(() -> new WrongParamException(ResultEnum.APPLYJOB_NOT_EXIST));
+        // 验证申请状态为申请中
         if(!ApplyJobStateEnum.APPLYING.equals(applyJob.getState())) {
-            throw new NotAllowedOperationException(ResultEnum.APPLYJOB_STATE_CHANGE_NOT_ALLOWED);
+            throw new BizException(ResultEnum.APPLYJOB_STATE_CHANGE_NOT_ALLOWED);
         }
-        applyJob.setState(approvalApplyJobRequest.getState());
+        // 修改申请信息
+        applyJob.setState(request.getState());
         applyJob.setOperateUser(user);
         applyJob.setOperateTime(new Date());
-        applyJob.setMsg(approvalApplyJobRequest.getMsg());
-        if(approvalApplyJobRequest.getState().equals(ApplyJobStateEnum.PASSED)) {
+        applyJob.setMsg(request.getMsg());
+        if(request.getState().equals(ApplyJobStateEnum.PASSED)) {
+            // 审批通过则执行后续操作
             approvedOperationDispatch.asyncDispatch(applyJob);
         }
-        applyJob = applyJobRepository.save(applyJob);
+        // 落库
+        applyJobRepository.save(applyJob);
         return new ApplyJobDTO(applyJob);
     }
 
     @Override
-    public PageVO<ApplyJobDTO> getApplyJobByApplyUser(GetMyApplyJobRequest getMyApplyJobRequest, String userAccount) {
-        Optional<User> userOptional = userRepository.findByAccount(userAccount);
-        if(userOptional.isEmpty()) {
-            throw new SystemWrongException(ResultEnum.USER_SESSION_WRONG);
-        }
-        User user = userOptional.get();
+    public Page<ApplyJobDTO> getApplyJobByApplyUser(GetMyApplyJobRequest getMyApplyJobRequest, String userAccount) {
+        // 获取用户信息
+        User user = userRepository.findByAccount(userAccount)
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
+        // 构建分页与排序请求
         PageRequest pageRequest = PageRequest.of(getMyApplyJobRequest.getCurrent() - 1, getMyApplyJobRequest.getPageSize());
         if(getMyApplyJobRequest.getField() != null) {
             Sort sort = Sort.by(new Sort.Order(getMyApplyJobRequest.getOrder(), getMyApplyJobRequest.getField()));
             pageRequest = PageRequest.of(getMyApplyJobRequest.getCurrent() - 1, getMyApplyJobRequest.getPageSize(), sort);
         }
+        // 查询
         Page<ApplyJob> applyJobs = applyJobRepository.findAll((root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             if (!CollectionUtils.isEmpty(getMyApplyJobRequest.getState())) {
@@ -154,59 +133,56 @@ public class ApplyJobServiceImpl implements ApplyJobService {
             predicates.add(cb.equal(root.get("applyUser"), user));
             return query.where(predicates.toArray(new Predicate[0])).getRestriction();
         }, pageRequest);
-        List<ApplyJobDTO> applyJobDTOList = applyJobs.getContent().stream()
-                .map(ApplyJobDTO::new)
-                .collect(Collectors.toList());
-        return new PageVO<>(applyJobs.getTotalElements(), applyJobDTOList);
+        return applyJobs.map(ApplyJobDTO::new);
     }
 
     @Override
-    @Transactional(rollbackFor = RuntimeException.class)
+    @Transactional
     public ApplyJobDTO cancelApplyJob(Long applyJobId, String userAccount) {
-        Optional<User> userOptional = userRepository.findByAccount(userAccount);
-        if(userOptional.isEmpty()) {
-            throw new SystemWrongException(ResultEnum.USER_SESSION_WRONG);
-        }
-        User user = userOptional.get();
-        Optional<ApplyJob> applyJobOptional = applyJobRepository.findByIdForUpdate(applyJobId);
-        if(applyJobOptional.isEmpty()) {
-            throw new WrongParamException(ResultEnum.APPLYJOB_NOT_EXIST);
-        }
-        ApplyJob applyJob = applyJobOptional.get();
+        // 获取用户信息
+        User user = userRepository.findByAccount(userAccount)
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
+        // 获取申请详情并加锁
+        ApplyJob applyJob = applyJobRepository.findByIdForUpdate(applyJobId)
+                .orElseThrow(() -> new WrongParamException(ResultEnum.APPLYJOB_NOT_EXIST));
+        // 验证申请人
         if(!applyJob.getApplyUser().getAccount().equals(userAccount)) {
-            throw new UnauthorizedOperationException(ResultEnum.NOT_APPLY_USER);
+            throw new BizException(ResultEnum.NOT_APPLY_USER);
         }
+        // 验证申请为申请中状态
         if(!applyJob.getState().equals(ApplyJobStateEnum.APPLYING)) {
-            throw new NotAllowedOperationException(ResultEnum.APPLYJOB_STATE_CHANGE_NOT_ALLOWED);
+            throw new BizException(ResultEnum.APPLYJOB_STATE_CHANGE_NOT_ALLOWED);
         }
+        // 更新申请信息
         applyJob.setState(ApplyJobStateEnum.CANCELLED);
         applyJob.setOperateUser(user);
         applyJob.setMsg("申请人撤销申请");
         applyJob.setOperateTime(new Date());
-        applyJob = applyJobRepository.save(applyJob);
+        // 落库
+        applyJobRepository.save(applyJob);
         return new ApplyJobDTO(applyJob);
     }
 
     @Override
-    @Transactional(rollbackFor = RuntimeException.class)
+    @Transactional
     public FileDownloadDTO getApplyJobDownloadFileUrl(Long applyJobId, String userAccount) {
-        Optional<User> userOptional = userRepository.findByAccount(userAccount);
-        if(userOptional.isEmpty()) {
-            throw new SystemWrongException(ResultEnum.USER_SESSION_WRONG);
-        }
-        User user = userOptional.get();
-        Optional<ApplyJob> applyJobOptional = applyJobRepository.findByIdForUpdate(applyJobId);
-        if(applyJobOptional.isEmpty()) {
-            throw new WrongParamException(ResultEnum.APPLYJOB_NOT_EXIST);
-        }
-        ApplyJob applyJob = applyJobOptional.get();
+        // 获取用户信息
+        User user = userRepository.findByAccount(userAccount)
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
+        // 获取申请详情并加锁
+        ApplyJob applyJob = applyJobRepository.findByIdForUpdate(applyJobId)
+                .orElseThrow(() -> new WrongParamException(ResultEnum.APPLYJOB_NOT_EXIST));
+        // 验证管理员 或 申请人
         if(!applyJob.getApplyUser().getId().equals(user.getId()) && !user.getType().equals(UserTypeEnum.ADMIN)) {
-            throw new UnauthorizedOperationException(ResultEnum.NOT_APPLY_USER);
+            throw new BizException(ResultEnum.NOT_APPLY_USER);
         }
+        // 获取申请中的文件
         OssFile downloadFile = applyJob.getDownloadFile();
-        if(downloadFile == null || downloadFile.getExpiresTime().getTime() < System.currentTimeMillis()) {
-            throw new NotAllowedOperationException(ResultEnum.FILE_NOT_EXIST_OR_EXPIRES);
-        }
+        Optional.ofNullable(downloadFile)
+                .map(OssFile::getExpiresTime)
+                .filter(date -> date.getTime() > System.currentTimeMillis())
+                .orElseThrow(() -> new BizException(ResultEnum.FILE_NOT_EXIST_OR_EXPIRES));
+        // 获取文件下载url
         String downloadUrl = downloadFile.getDownloadUrl();
         if(downloadUrl == null || downloadFile.getDownloadUrlExpiresTime().getTime() < System.currentTimeMillis()) {
             // 下载链接失效 更新下载链接

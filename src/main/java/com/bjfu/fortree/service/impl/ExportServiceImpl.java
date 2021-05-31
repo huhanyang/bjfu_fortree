@@ -16,7 +16,6 @@ import com.bjfu.fortree.enums.entity.AuthorityTypeEnum;
 import com.bjfu.fortree.excel.head.RecordInfoHead;
 import com.bjfu.fortree.excel.head.TreeInfoHead;
 import com.bjfu.fortree.excel.head.WoodlandInfoHead;
-import com.bjfu.fortree.exception.ExportExcelException;
 import com.bjfu.fortree.exception.SystemWrongException;
 import com.bjfu.fortree.exception.WrongParamException;
 import com.bjfu.fortree.pojo.request.export.ExportWoodlandsInBoundsRequest;
@@ -36,7 +35,6 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -58,15 +56,15 @@ public class ExportServiceImpl implements ExportService {
     private ApprovedOperationDispatch approvedOperationDispatch;
 
     @Override
-    @Transactional(rollbackFor = RuntimeException.class)
+    @Transactional
     public void exportWoodlandDetailInfo(Long woodlandId, HttpServletResponse response) {
-        Optional<Woodland> woodlandOptional = woodlandRepository.findById(woodlandId);
-        if(woodlandOptional.isEmpty()) {
-            throw new WrongParamException(ResultEnum.WOODLAND_NOT_EXIST);
-        }
-        Woodland woodland = woodlandOptional.get();
+        // 获取林地信息
+        Woodland woodland = woodlandRepository.findById(woodlandId)
+                .orElseThrow(() -> new WrongParamException(ResultEnum.WOODLAND_NOT_EXIST));
+        // 生成文件名
         String fileName = URLEncoder.encode(woodland.getName(), StandardCharsets.UTF_8)
                 .replaceAll("\\+", "%20") + ".xlsx";
+        // 设置http响应头
         response.setHeader("Content-disposition", "attachment;filename*=utf-8''" + fileName);
         try{
             ExcelWriter excelWriter = EasyExcel.write(response.getOutputStream()).autoCloseStream(false).build();
@@ -87,21 +85,21 @@ public class ExportServiceImpl implements ExportService {
                 excelWriter.write(record.getTrees().stream().map(TreeInfoHead::new).collect(Collectors.toList()),
                         recordSheet, treesInfoTable);
             });
+            // 输出文件
             excelWriter.finish();
         } catch (Exception e) {
             log.error("导出错误", e);
-            throw new ExportExcelException(ResultEnum.FILE_EXPORT_FAILED);
+            throw new SystemWrongException(ResultEnum.FILE_EXPORT_FAILED);
         }
     }
 
     @Override
-    @Transactional(rollbackFor = RuntimeException.class)
+    @Transactional
     public ApplyJobDTO exportWoodlandsInfo(String userAccount, List<Long> woodlandIds) {
-        Optional<User> userOptional = userRepository.findByAccount(userAccount);
-        if(userOptional.isEmpty()) {
-            throw new SystemWrongException(ResultEnum.USER_SESSION_WRONG);
-        }
-        User user = userOptional.get();
+        // 查找用户
+        User user = userRepository.findByAccount(userAccount)
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
+        // 生成申请信息简介
         StringBuilder stringBuilder = new StringBuilder();
         woodlandRepository.findAllById(woodlandIds)
                 .forEach(woodland -> stringBuilder.append(woodland.getName()).append(','));
@@ -109,31 +107,35 @@ public class ExportServiceImpl implements ExportService {
         if(stringBuilder.capacity() > 250) {
             exportWoodlandsName = stringBuilder.substring(0, 250) + "...";
         }
+        // 序列化申请参数
         String applyParam = JSONObject.toJSONString(woodlandIds);
+        // 判断是否拥有免审批权限
         if(authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.EXPORT_ANY_INFO)) {
+            // 生成状态为通过的申请实体
             ApplyJob passedApply = ApplyJob.createPassedApply(user, ApplyJobTypeEnum.EXPORT_WOODLANDS_INFO, applyParam,
                     exportWoodlandsName);
+            // 申请实体落库
             applyJobRepository.save(passedApply);
-            // 执行审批通过后的操作器来落库
+            // 执行审批通过后的操作
             approvedOperationDispatch.asyncDispatch(passedApply);
             return new ApplyJobDTO(passedApply);
         } else {
+            // 生成状态为申请中的申请实体
             ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.EXPORT_WOODLANDS_INFO, applyParam,
                     exportWoodlandsName);
-            // 将需要审批的请求申请落库
+            // 申请实体落库
             applyJobRepository.save(apply);
             return new ApplyJobDTO(apply);
         }
     }
 
     @Override
-    @Transactional(rollbackFor = RuntimeException.class)
+    @Transactional
     public ApplyJobDTO exportWoodlandsInfoInBounds(String userAccount, ExportWoodlandsInBoundsRequest request) {
-        Optional<User> userOptional = userRepository.findByAccount(userAccount);
-        if(userOptional.isEmpty()) {
-            throw new SystemWrongException(ResultEnum.USER_SESSION_WRONG);
-        }
-        User user = userOptional.get();
+        // 查找用户
+        User user = userRepository.findByAccount(userAccount)
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
+        // 生成申请信息简介
         StringBuilder stringBuilder = new StringBuilder();
         woodlandRepository.findWoodlandsInBounds(request.getPolygon().convertToGeom())
                 .forEach(woodland -> stringBuilder.append(woodland.getName()).append(','));
@@ -141,18 +143,23 @@ public class ExportServiceImpl implements ExportService {
         if(stringBuilder.capacity() > 250) {
             exportWoodlandsName = stringBuilder.substring(0, 250) + "...";
         }
+        // 序列化申请参数
         String applyParam = JSONObject.toJSONString(request);
+        // 判断是否拥有免审批权限
         if(authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.EXPORT_ANY_INFO)) {
+            // 生成状态为通过的申请实体
             ApplyJob passedApply = ApplyJob.createPassedApply(user, ApplyJobTypeEnum.EXPORT_WOODLANDS_INFO, applyParam,
                     exportWoodlandsName);
+            // 申请实体落库
             applyJobRepository.save(passedApply);
-            // 执行审批通过后的操作器来落库
+            // 执行审批通过后的操作
             approvedOperationDispatch.asyncDispatch(passedApply);
             return new ApplyJobDTO(passedApply);
         } else {
+            // 生成状态为申请中的申请实体
             ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.EXPORT_WOODLANDS_INFO, applyParam,
                     exportWoodlandsName);
-            // 将需要审批的请求申请落库
+            // 申请实体落库
             applyJobRepository.save(apply);
             return new ApplyJobDTO(apply);
         }

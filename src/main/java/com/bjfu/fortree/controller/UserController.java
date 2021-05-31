@@ -22,9 +22,9 @@ import java.util.Collections;
  * 用户相关操作接口
  * @author warthog
  */
+@Validated
 @RestController
 @RequestMapping("/user")
-@Validated
 public class UserController {
 
     @Autowired

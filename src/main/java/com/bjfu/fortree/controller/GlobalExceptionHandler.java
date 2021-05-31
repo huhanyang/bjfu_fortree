@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * 全局异常处理器
  * @author warthog
  */
-@ControllerAdvice
 @Slf4j
+@ControllerAdvice
 public class GlobalExceptionHandler {
 
     @ResponseBody

@@ -17,7 +17,6 @@ import com.bjfu.fortree.pojo.entity.woodland.Woodland;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.enums.entity.ApplyJobTypeEnum;
 import com.bjfu.fortree.enums.entity.AuthorityTypeEnum;
-import com.bjfu.fortree.enums.entity.UserTypeEnum;
 import com.bjfu.fortree.exception.SystemWrongException;
 import com.bjfu.fortree.exception.WrongParamException;
 import com.bjfu.fortree.repository.file.OssFileRepository;
@@ -30,7 +29,6 @@ import com.bjfu.fortree.repository.woodland.WoodlandRepository;
 import com.bjfu.fortree.pojo.request.woodland.*;
 import com.bjfu.fortree.service.OssService;
 import com.bjfu.fortree.service.WoodlandService;
-import com.bjfu.fortree.pojo.vo.PageVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -41,7 +39,6 @@ import org.springframework.util.CollectionUtils;
 
 import javax.persistence.criteria.Predicate;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -68,311 +65,305 @@ public class WoodlandServiceImpl implements WoodlandService {
     private OssFileRepository ossFileRepository;
 
     @Override
-    @Transactional(rollbackFor = RuntimeException.class)
-    public ApplyJobDTO createWoodland(String userAccount, CreateWoodlandRequest createWoodlandRequest) {
-        // 查找用户及其拥有的权限
-        Optional<User> userOptional = userRepository.findByAccount(userAccount);
-        if(userOptional.isEmpty()) {
-            throw new SystemWrongException(ResultEnum.USER_SESSION_WRONG);
-        }
-        User user = userOptional.get();
-        // 请求序列化成json便于保存到申请表中
-        String applyParam = JSONObject.toJSONString(createWoodlandRequest);
+    @Transactional
+    public ApplyJobDTO createWoodland(String userAccount, CreateWoodlandRequest request) {
+        // 查找用户
+        User user = userRepository.findByAccount(userAccount)
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
+        // 请求参数序列化
+        String applyParam = JSONObject.toJSONString(request);
+        // 判断是否存在免审批权限
         if(authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.CREATE_ANY_WOODLAND)) {
-            // 根据权限判断不需要审批则直接保存审批通过的申请
+            // 生成状态为通过的申请实体
             ApplyJob passedApply = ApplyJob.createPassedApply(user, ApplyJobTypeEnum.CREATE_WOODLAND, applyParam);
+            // 申请实体落库
             applyJobRepository.save(passedApply);
-            // 执行审批通过后的操作器来落库
+            // 执行审批通过后的操作
             approvedOperationDispatch.dispatch(passedApply);
             return new ApplyJobDTO(passedApply);
         } else {
-            // 将需要审批的请求申请落库
+            // 生成状态为申请中的申请实体
             ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.CREATE_WOODLAND, applyParam);
+            // 申请实体落库
             applyJobRepository.save(apply);
             return new ApplyJobDTO(apply);
         }
     }
 
     @Override
-    @Transactional(rollbackFor = RuntimeException.class)
-    public ApplyJobDTO addRecord(String userAccount, AddRecordRequest addRecordRequest) {
-        // 查找用户、林地、用户拥有的权限
-        Optional<User> userOptional = userRepository.findByAccount(userAccount);
-        if(userOptional.isEmpty()) {
-            throw new SystemWrongException(ResultEnum.USER_SESSION_WRONG);
-        }
-        User user = userOptional.get();
-        Optional<Woodland> woodlandOptional = woodlandRepository.findByIdForUpdate(addRecordRequest.getWoodlandId());
-        if(woodlandOptional.isEmpty()) {
-            throw new WrongParamException(ResultEnum.WOODLAND_NOT_EXIST);
-        }
-        Woodland woodland = woodlandOptional.get();
-        // 请求序列化成json便于保存到申请表中
-        String applyParam = JSONObject.toJSONString(addRecordRequest);
+    @Transactional
+    public ApplyJobDTO addRecord(String userAccount, AddRecordRequest request) {
+        // 查找用户
+        User user = userRepository.findByAccount(userAccount)
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
+        // 查找林地并对其加锁
+        Woodland woodland = woodlandRepository.findByIdForUpdate(request.getWoodlandId()).
+                orElseThrow(() -> new WrongParamException(ResultEnum.WOODLAND_NOT_EXIST));
+        // 请求参数序列化
+        String applyParam = JSONObject.toJSONString(request);
+        // 判断是否存在免审批权限 或 是否为林地创建人
         if(authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.ADD_RECORD_IN_ANY_WOODLAND) ||
                 woodland.getCreator().getId().equals(user.getId())) {
-            // 根据权限及林地创建人判断不需要审批则直接保存审批通过的申请
+            // 生成状态为通过的申请实体
             ApplyJob passedApply = ApplyJob.createPassedApply(user, ApplyJobTypeEnum.ADD_RECORD_IN_WOODLAND, applyParam);
+            // 申请实体落库
             applyJobRepository.save(passedApply);
-            // 执行审批通过后的操作器来落库
+            // 执行审批通过后的操作
             approvedOperationDispatch.dispatch(passedApply);
             return new ApplyJobDTO(passedApply);
         } else {
+            // 生成状态为申请中的申请实体
             ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.ADD_RECORD_IN_WOODLAND, applyParam);
-            // 将需要审批的请求申请落库
+            // 申请实体落库
             applyJobRepository.save(apply);
             return new ApplyJobDTO(apply);
         }
     }
 
     @Override
-    @Transactional(rollbackFor = RuntimeException.class)
-    public ApplyJobDTO addTrees(String userAccount, AddTreesRequest addTreesRequest) {
-        // 查找用户、记录、用户拥有的权限
-        Optional<User> userOptional = userRepository.findByAccount(userAccount);
-        if(userOptional.isEmpty()) {
-            throw new SystemWrongException(ResultEnum.USER_SESSION_WRONG);
-        }
-        User user = userOptional.get();
-        Optional<Record> recordOptional = recordRepository.findByIdForUpdate(addTreesRequest.getRecordId());
-        if(recordOptional.isEmpty()) {
-            throw new WrongParamException(ResultEnum.RECORD_NOT_EXIST);
-        }
-        Record record = recordOptional.get();
-        // 请求序列化成json便于保存到申请表中
-        String applyParam = JSONObject.toJSONString(addTreesRequest);
+    @Transactional
+    public ApplyJobDTO addTrees(String userAccount, AddTreesRequest request) {
+        // 查找用户
+        User user = userRepository.findByAccount(userAccount)
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
+        // 查找记录并对其加锁
+        Record record = recordRepository.findByIdForUpdate(request.getRecordId())
+                .orElseThrow(() -> new WrongParamException(ResultEnum.RECORD_NOT_EXIST));
+        // 请求参数序列化
+        String applyParam = JSONObject.toJSONString(request);
+        // 判断是否存在免审批权限 或 是否为林地创建人 或 是否为记录创建人
         if(authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.ADD_TREES_IN_ANY_RECORD) ||
                 record.getWoodland().getCreator().getId().equals(user.getId()) ||
                 record.getCreator().getId().equals(user.getId())) {
-            // 根据权限、林地创建人及记录创建人判断不需要审批则直接保存审批通过的申请
+            // 生成状态为通过的申请实体
             ApplyJob passedApply = ApplyJob.createPassedApply(user, ApplyJobTypeEnum.ADD_TREES_IN_RECORD, applyParam);
+            // 申请实体落库
             applyJobRepository.save(passedApply);
-            // 执行审批通过后的操作器来落库
+            // 执行审批通过后的操作
             approvedOperationDispatch.dispatch(passedApply);
             return new ApplyJobDTO(passedApply);
         } else {
+            // 生成状态为申请中的申请实体
             ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.ADD_TREES_IN_RECORD, applyParam);
-            // 将需要审批的请求申请落库
+            // 申请实体落库
             applyJobRepository.save(apply);
             return new ApplyJobDTO(apply);
         }
     }
 
     @Override
-    @Transactional(rollbackFor = RuntimeException.class)
-    public ApplyJobDTO addTreesByExcel(String userAccount, AddTreesByExcelRequest addTreesByExcelRequest) {
-        // 查找用户、记录、用户拥有的权限
-        Optional<User> userOptional = userRepository.findByAccount(userAccount);
-        if(userOptional.isEmpty()) {
-            throw new SystemWrongException(ResultEnum.USER_SESSION_WRONG);
-        }
-        User user = userOptional.get();
-        Optional<Record> recordOptional = recordRepository.findByIdForUpdate(addTreesByExcelRequest.getRecordId());
-        if(recordOptional.isEmpty()) {
-            throw new WrongParamException(ResultEnum.RECORD_NOT_EXIST);
-        }
+    @Transactional
+    public ApplyJobDTO addTreesByExcel(String userAccount, AddTreesByExcelRequest request) {
+        // 查找用户
+        User user = userRepository.findByAccount(userAccount)
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
+        // 查找记录并对其加锁
+        Record record = recordRepository.findByIdForUpdate(request.getRecordId())
+                .orElseThrow(() -> new WrongParamException(ResultEnum.RECORD_NOT_EXIST));
+        // 利用UUID生成存储到OSS的文件名
         String ossObjectName = UUID.randomUUID().toString();
+        // 文件上传到OSS
         try {
-            ossService.putObject(MinioConfig.APPLY_EXCEL_BUCKET_NAME, ossObjectName, addTreesByExcelRequest.getFile().getInputStream());
+            ossService.putObject(MinioConfig.APPLY_EXCEL_BUCKET_NAME, ossObjectName, request.getFile().getInputStream());
         } catch (IOException e) {
-            throw new WrongParamException(ResultEnum.FILE_UPLOAD_FAILED);
+            throw new SystemWrongException(ResultEnum.FILE_UPLOAD_FAILED);
         }
-        // 记录上传oss的文件信息
+        // 记录上传的文件信息
         OssFile ossFile = new OssFile();
-        ossFile.setFileName(addTreesByExcelRequest.getFileName());
+        ossFile.setFileName(request.getFileName());
         ossFile.setType(FileTypeEnum.USER_APPLY_FILE);
         ossFile.setOssBucketName(MinioConfig.APPLY_EXCEL_BUCKET_NAME);
         ossFile.setOssObjectName(ossObjectName);
-        Calendar calendar = new GregorianCalendar();
-        calendar.setTime(new Date());
-        calendar.add(Calendar.DAY_OF_MONTH, 1);
-        ossFile.setExpiresTime(calendar.getTime());
         ossFileRepository.save(ossFile);
-
-        Record record = recordOptional.get();
-        String applyParam = addTreesByExcelRequest.getRecordId().toString();
+        // 对请求参数中的recordId序列化
+        String applyParam = request.getRecordId().toString();
+        // 判断是否存在免审批权限 或 是否为林地创建人 或 是否为记录创建人
         if(authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.ADD_TREES_IN_ANY_RECORD) ||
                 record.getWoodland().getCreator().getId().equals(user.getId()) ||
                 record.getCreator().getId().equals(user.getId())) {
-            // 根据权限、林地创建人及记录创建人判断不需要审批则直接保存审批通过的申请
+            // 生成状态为通过的申请实体
             ApplyJob passedApply = ApplyJob.createPassedApply(user, ApplyJobTypeEnum.ADD_TREES_BY_EXCEL_IN_RECORD, applyParam);
+            // 文件保存到申请实体的下载项中
             passedApply.setDownloadFile(ossFile);
+            // 申请实体落库
             applyJobRepository.save(passedApply);
-            // 执行审批通过后的操作器来落库
+            // 执行审批通过后的操作
             approvedOperationDispatch.dispatch(passedApply);
             return new ApplyJobDTO(passedApply);
         } else {
+            // 生成状态为申请中的申请实体
             ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.ADD_TREES_BY_EXCEL_IN_RECORD, applyParam);
+            // 文件保存到申请实体的下载项中
             apply.setDownloadFile(ossFile);
-            // 将需要审批的请求申请落库
+            // 申请实体落库
             applyJobRepository.save(apply);
             return new ApplyJobDTO(apply);
         }
     }
 
     @Override
+    @Transactional
     public ApplyJobDTO deleteWoodland(String userAccount, Long woodlandId) {
-        Optional<User> userOptional = userRepository.findByAccount(userAccount);
-        if(userOptional.isEmpty()) {
-            throw new SystemWrongException(ResultEnum.USER_SESSION_WRONG);
-        }
-        User user = userOptional.get();
-        Optional<Woodland> woodlandOptional = woodlandRepository.findById(woodlandId);
-        if(woodlandOptional.isEmpty()) {
-            throw new WrongParamException(ResultEnum.WOODLAND_NOT_EXIST);
-        }
-        Woodland woodland = woodlandOptional.get();
-        // 请求序列化便于保存到申请表中
+        // 查找用户
+        User user = userRepository.findByAccount(userAccount)
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
+        // 查找林地并对其加锁
+        Woodland woodland = woodlandRepository.findByIdForUpdate(woodlandId).
+                orElseThrow(() -> new WrongParamException(ResultEnum.WOODLAND_NOT_EXIST));
+        // 请求参数序列化
         String applyParam = woodlandId.toString();
+        // 判断是否存在免审批权限 或 是否为林地创建人
         if(authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.DELETE_ANY_WOODLAND) ||
                 woodland.getCreator().getId().equals(user.getId())) {
-            // 根据权限、林地创建人及记录创建人判断不需要审批则直接保存审批通过的申请
+            // 生成状态为通过的申请实体
             ApplyJob passedApply = ApplyJob.createPassedApply(user, ApplyJobTypeEnum.DELETE_WOODLAND, applyParam);
+            // 申请实体落库
             applyJobRepository.save(passedApply);
-            // 执行审批通过后的操作器来落库
+            // 执行审批通过后的操作
             approvedOperationDispatch.dispatch(passedApply);
             return new ApplyJobDTO(passedApply);
         } else {
+            // 生成状态为申请中的申请实体
             ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.DELETE_WOODLAND, applyParam);
-            // 将需要审批的请求申请落库
+            // 申请实体落库
             applyJobRepository.save(apply);
             return new ApplyJobDTO(apply);
         }
     }
 
     @Override
-    @Transactional(rollbackFor = RuntimeException.class)
+    @Transactional
     public ApplyJobDTO deleteRecord(String userAccount, Long recordId) {
-        Optional<User> userOptional = userRepository.findByAccount(userAccount);
-        if(userOptional.isEmpty()) {
-            throw new SystemWrongException(ResultEnum.USER_SESSION_WRONG);
-        }
-        User user = userOptional.get();
-        Optional<Record> recordOptional = recordRepository.findByIdForUpdate(recordId);
-        if(recordOptional.isEmpty()) {
-            throw new WrongParamException(ResultEnum.RECORD_NOT_EXIST);
-        }
-        Record record = recordOptional.get();
-        // 请求序列化便于保存到申请表中
+        // 查找用户
+        User user = userRepository.findByAccount(userAccount)
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
+        // 查找记录并对其加锁
+        Record record = recordRepository.findByIdForUpdate(recordId)
+                .orElseThrow(() -> new WrongParamException(ResultEnum.RECORD_NOT_EXIST));
+        // 请求参数序列化
         String applyParam = recordId.toString();
+        // 判断是否存在免审批权限 或 是否为记录创建人 或 是否为林地创建人
         if(authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.DELETE_RECORD_IN_ANY_WOODLAND) ||
                 record.getCreator().getId().equals(user.getId()) ||
                 record.getWoodland().getCreator().getId().equals(user.getId())) {
-            // 根据权限、林地创建人及记录创建人判断不需要审批则直接保存审批通过的申请
+            // 生成状态为通过的申请实体
             ApplyJob passedApply = ApplyJob.createPassedApply(user, ApplyJobTypeEnum.DELETE_RECORD_IN_WOODLAND, applyParam);
+            // 申请实体落库
             applyJobRepository.save(passedApply);
-            // 执行审批通过后的操作器来落库
+            // 执行审批通过后的操作
             approvedOperationDispatch.dispatch(passedApply);
             return new ApplyJobDTO(passedApply);
         } else {
+            // 生成状态为申请中的申请实体
             ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.DELETE_RECORD_IN_WOODLAND, applyParam);
-            // 将需要审批的请求申请落库
+            // 申请实体落库
             applyJobRepository.save(apply);
             return new ApplyJobDTO(apply);
         }
     }
 
     @Override
-    @Transactional(rollbackFor = RuntimeException.class)
-    public ApplyJobDTO deleteTrees(String userAccount, DeleteTreesRequest deleteTreesRequest) {
-        Optional<User> userOptional = userRepository.findByAccount(userAccount);
-        if(userOptional.isEmpty()) {
-            throw new SystemWrongException(ResultEnum.USER_SESSION_WRONG);
-        }
-        User user = userOptional.get();
-        Optional<Record> recordOptional = recordRepository.findByIdForUpdate(deleteTreesRequest.getRecordId());
-        if(recordOptional.isEmpty()) {
-            throw new WrongParamException(ResultEnum.RECORD_NOT_EXIST);
-        }
-        Record record = recordOptional.get();
-        Iterable<Tree> trees = treeRepository.findAllById(deleteTreesRequest.getTreeIds());
-        trees.forEach(tree -> {
-            if(!tree.getRecord().getId().equals(record.getId())) {
-                throw new WrongParamException(ResultEnum.TREE_IS_NOT_IN_RECORD);
-            }
-        });
-        // 请求序列化成json便于保存到申请表中
-        String applyParam = JSONObject.toJSONString(deleteTreesRequest);
+    @Transactional
+    public ApplyJobDTO deleteTrees(String userAccount, DeleteTreesRequest request) {
+        // 查找用户
+        User user = userRepository.findByAccount(userAccount)
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
+        // 查找记录并对其加锁
+        Record record = recordRepository.findByIdForUpdate(request.getRecordId())
+                .orElseThrow(() -> new WrongParamException(ResultEnum.RECORD_NOT_EXIST));
+        // 过滤出记录中存在的树木id
+        List<Long> treeIds = treeRepository.findAllById(request.getTreeIds())
+                .stream()
+                .filter(tree -> tree.getRecord().getId().equals(record.getId()))
+                .map(Tree::getId)
+                .collect(Collectors.toList());
+        // 更新请求参数
+        request.setTreeIds(treeIds);
+        // 请求参数序列化
+        String applyParam = JSONObject.toJSONString(request);
+        // 判断是否存在免审批权限 或 是否为记录创建人 或 是否为林地创建人
         if(authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.DELETE_TREES_IN_ANY_RECORD) ||
                 record.getCreator().getId().equals(user.getId()) ||
                 record.getWoodland().getCreator().getId().equals(user.getId())) {
-            // 根据权限、林地创建人及记录创建人判断不需要审批则直接保存审批通过的申请
+            // 生成状态为通过的申请实体
             ApplyJob passedApply = ApplyJob.createPassedApply(user, ApplyJobTypeEnum.DELETE_TREES_IN_RECORD, applyParam);
+            // 申请实体落库
             applyJobRepository.save(passedApply);
-            // 执行审批通过后的操作器来落库
+            // 执行审批通过后的操作
             approvedOperationDispatch.dispatch(passedApply);
             return new ApplyJobDTO(passedApply);
         } else {
+            // 生成状态为申请中的申请实体
             ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.DELETE_TREES_IN_RECORD, applyParam);
-            // 将需要审批的请求申请落库
+            // 申请实体落库
             applyJobRepository.save(apply);
             return new ApplyJobDTO(apply);
         }
     }
 
     @Override
-    public ApplyJobDTO editWoodland(String userAccount, EditWoodlandRequest editWoodlandRequest) {
-        Optional<User> userOptional = userRepository.findByAccount(userAccount);
-        if(userOptional.isEmpty()) {
-            throw new SystemWrongException(ResultEnum.USER_SESSION_WRONG);
-        }
-        User user = userOptional.get();
-        Optional<Woodland> woodlandOptional = woodlandRepository.findById(editWoodlandRequest.getWoodlandId());
-        if(woodlandOptional.isEmpty()) {
-            throw new WrongParamException(ResultEnum.WOODLAND_NOT_EXIST);
-        }
-        Woodland woodland = woodlandOptional.get();
-        // 请求序列化成json便于保存到申请表中
-        String applyParam = JSONObject.toJSONString(editWoodlandRequest);
+    @Transactional
+    public ApplyJobDTO editWoodland(String userAccount, EditWoodlandRequest request) {
+        // 查找用户
+        User user = userRepository.findByAccount(userAccount)
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
+        // 查找林地并对其加锁
+        Woodland woodland = woodlandRepository.findByIdForUpdate(request.getWoodlandId()).
+                orElseThrow(() -> new WrongParamException(ResultEnum.WOODLAND_NOT_EXIST));
+        // 请求参数序列化
+        String applyParam = JSONObject.toJSONString(request);
+        // 判断是否存在免审批权限 或 是否为林地创建人
         if(woodland.getCreator().getId().equals(user.getId()) ||
                 authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.EDIT_ANY_WOODLAND)) {
-            // 根据权限、林地创建人及记录创建人判断不需要审批则直接保存审批通过的申请
+            // 生成状态为通过的申请实体
             ApplyJob passedApply = ApplyJob.createPassedApply(user, ApplyJobTypeEnum.EDIT_WOODLAND, applyParam);
+            // 申请实体落库
             applyJobRepository.save(passedApply);
-            // 执行审批通过后的操作器来落库
+            // 执行审批通过后的操作
             approvedOperationDispatch.dispatch(passedApply);
             return new ApplyJobDTO(passedApply);
         } else {
+            // 生成状态为申请中的申请实体
             ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.EDIT_WOODLAND, applyParam);
-            // 将需要审批的请求申请落库
+            // 申请实体落库
             applyJobRepository.save(apply);
             return new ApplyJobDTO(apply);
         }
     }
 
     @Override
-    public ApplyJobDTO editRecord(String userAccount, EditRecordRequest editRecordRequest) {
-        Optional<User> userOptional = userRepository.findByAccount(userAccount);
-        if(userOptional.isEmpty()) {
-            throw new SystemWrongException(ResultEnum.USER_SESSION_WRONG);
-        }
-        User user = userOptional.get();
-        Optional<Record> recordOptional = recordRepository.findById(editRecordRequest.getRecordId());
-        if(recordOptional.isEmpty()) {
-            throw new WrongParamException(ResultEnum.WOODLAND_NOT_EXIST);
-        }
-        Record record = recordOptional.get();
-        // 请求序列化成json便于保存到申请表中
-        String applyParam = JSONObject.toJSONString(editRecordRequest);
+    @Transactional
+    public ApplyJobDTO editRecord(String userAccount, EditRecordRequest request) {
+        // 查找用户
+        User user = userRepository.findByAccount(userAccount)
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
+        // 查找记录并对其加锁
+        Record record = recordRepository.findByIdForUpdate(request.getRecordId())
+                .orElseThrow(() -> new WrongParamException(ResultEnum.RECORD_NOT_EXIST));
+        // 请求参数序列化
+        String applyParam = JSONObject.toJSONString(request);
+        // 判断是否存在免审批权限 或 是否为记录创建人 或 是否为林地创建人
         if(record.getCreator().getId().equals(user.getId()) ||
                 record.getWoodland().getCreator().getId().equals(user.getId()) ||
                 authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.EDIT_RECORD_IN_ANY_WOODLAND)) {
-            // 根据权限、林地创建人及记录创建人判断不需要审批则直接保存审批通过的申请
+            // 生成状态为通过的申请实体
             ApplyJob passedApply = ApplyJob.createPassedApply(user, ApplyJobTypeEnum.EDIT_RECORD, applyParam);
+            // 申请实体落库
             applyJobRepository.save(passedApply);
-            // 执行审批通过后的操作器来落库
+            // 执行审批通过后的操作
             approvedOperationDispatch.dispatch(passedApply);
             return new ApplyJobDTO(passedApply);
         } else {
+            // 生成状态为申请中的申请实体
             ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.EDIT_RECORD, applyParam);
-            // 将需要审批的请求申请落库
+            // 申请实体落库
             applyJobRepository.save(apply);
             return new ApplyJobDTO(apply);
         }
     }
 
     @Override
-    public PageVO<WoodlandDTO> getWoodlands(GetWoodlandsRequest getWoodlandsRequest) {
+    public Page<WoodlandDTO> getWoodlands(GetWoodlandsRequest getWoodlandsRequest) {
         PageRequest pageRequest = PageRequest.of(getWoodlandsRequest.getCurrent() - 1, getWoodlandsRequest.getPageSize());
         if(getWoodlandsRequest.getField() != null) {
             Sort sort = Sort.by(new Sort.Order(getWoodlandsRequest.getOrder(), getWoodlandsRequest.getField()));
@@ -394,23 +385,22 @@ public class WoodlandServiceImpl implements WoodlandService {
             }
             return query.where(predicates.toArray(new Predicate[0])).getRestriction();
         }, pageRequest);
-        List<WoodlandDTO> woodlandDTOList = woodlands.getContent().stream().map(WoodlandDTO::new).collect(Collectors.toList());
-        return new PageVO<>(woodlands.getTotalElements(), woodlandDTOList);
+        return woodlands.map(WoodlandDTO::new);
     }
 
     @Override
     public List<WoodlandDTO> getAllWoodlands() {
         List<Woodland> woodlands = woodlandRepository.findAll();
-        return woodlands.stream().map(WoodlandDTO::new).collect(Collectors.toList());
+        return woodlands.stream()
+                .map(WoodlandDTO::new)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public PageVO<WoodlandDTO> getWoodlandsByCreator(String userAccount, GetWoodlandsByCreatorRequest getWoodlandsByCreatorRequest) {
-        Optional<User> userOptional = userRepository.findByAccount(userAccount);
-        if(userOptional.isEmpty()) {
-            throw new SystemWrongException(ResultEnum.USER_SESSION_WRONG);
-        }
-        User user = userOptional.get();
+    public Page<WoodlandDTO> getWoodlandsByCreator(String userAccount, GetWoodlandsByCreatorRequest getWoodlandsByCreatorRequest) {
+        // 查找用户
+        User user = userRepository.findByAccount(userAccount)
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
         PageRequest pageRequest = PageRequest.of(getWoodlandsByCreatorRequest.getCurrent() - 1, getWoodlandsByCreatorRequest.getPageSize());
         if(getWoodlandsByCreatorRequest.getField() != null) {
             Sort sort = Sort.by(new Sort.Order(getWoodlandsByCreatorRequest.getOrder(), getWoodlandsByCreatorRequest.getField()));
@@ -418,6 +408,7 @@ public class WoodlandServiceImpl implements WoodlandService {
         }
         Page<Woodland> woodlands = woodlandRepository.findAll((root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.equal(root.get("creator"), user));
             if (!CollectionUtils.isEmpty(getWoodlandsByCreatorRequest.getName())) {
                 predicates.add(cb.like(root.get("name"), "%" + getWoodlandsByCreatorRequest.getName().get(0) + "%"));
             }
@@ -430,28 +421,20 @@ public class WoodlandServiceImpl implements WoodlandService {
             if (!CollectionUtils.isEmpty(getWoodlandsByCreatorRequest.getCity())) {
                 predicates.add(cb.like(root.get("city"), "%" + getWoodlandsByCreatorRequest.getCity().get(0) + "%"));
             }
-            if(!user.getType().equals(UserTypeEnum.ADMIN)) {
-                predicates.add(cb.equal(root.get("creator"), user));
-            }
             return query.where(predicates.toArray(new Predicate[0])).getRestriction();
         }, pageRequest);
-        List<WoodlandDTO> woodlandDTOList = woodlands.getContent().stream().map(WoodlandDTO::new).collect(Collectors.toList());
-        return new PageVO<>(woodlands.getTotalElements(), woodlandDTOList);
+        return woodlands.map(WoodlandDTO::new);
     }
 
     @Override
-    @Transactional(rollbackFor = RuntimeException.class)
     public WoodlandDetailDTO getWoodlandDetail(Long woodlandId) {
-        Optional<Woodland> woodlandOptional = woodlandRepository.findById(woodlandId);
-        if(woodlandOptional.isEmpty()) {
-            throw new WrongParamException(ResultEnum.WOODLAND_NOT_EXIST);
-        }
-        Woodland woodland = woodlandOptional.get();
+        Woodland woodland = woodlandRepository.findById(woodlandId)
+                .orElseThrow(() -> new WrongParamException(ResultEnum.WOODLAND_NOT_EXIST));
         return new WoodlandDetailDTO(woodland);
     }
 
     @Override
-    public PageVO<TreeDTO> getTrees(GetTreesRequest getTreesRequest) {
+    public Page<TreeDTO> getTrees(GetTreesRequest getTreesRequest) {
         Optional<Record> recordOptional = recordRepository.findById(getTreesRequest.getRecordId());
         if(recordOptional.isEmpty()) {
             throw new WrongParamException(ResultEnum.RECORD_NOT_EXIST);
@@ -473,8 +456,7 @@ public class WoodlandServiceImpl implements WoodlandService {
             predicates.add(cb.equal(root.get("record"), record));
             return query.where(predicates.toArray(new Predicate[0])).getRestriction();
         }, pageRequest);
-        List<TreeDTO> treeDtoS = trees.getContent().stream().map(TreeDTO::new).collect(Collectors.toList());
-        return new PageVO<>(trees.getTotalElements(), treeDtoS);
+        return trees.map(TreeDTO::new);
     }
 
 }

@@ -11,14 +11,14 @@ import org.springframework.data.domain.Page;
 public interface UserService {
 
     /**
-     * 登录检查
+     * 登录
      * @param request 登录请求
      * @return 用户信息
      */
     UserDTO login(LoginCheckRequest request);
 
     /**
-     * 用户注册
+     * 注册
      * @param request 注册请求
      * @return 用户信息
      */
