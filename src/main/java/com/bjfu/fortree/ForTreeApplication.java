@@ -17,7 +17,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 public class ForTreeApplication {
 
 	public static void main(String[] args) {
-		// todo entity dto vo重构
 		SpringApplication.run(ForTreeApplication.class, args);
 	}
 
