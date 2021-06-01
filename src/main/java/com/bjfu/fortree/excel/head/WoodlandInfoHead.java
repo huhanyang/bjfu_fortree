@@ -1,7 +1,7 @@
 package com.bjfu.fortree.excel.head;
 
 import com.alibaba.excel.annotation.ExcelProperty;
-import com.bjfu.fortree.pojo.entity.woodland.Woodland;
+import com.bjfu.fortree.pojo.entity.Woodland;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 

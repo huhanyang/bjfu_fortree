@@ -1,8 +1,5 @@
-package com.bjfu.fortree.pojo.entity.apply;
+package com.bjfu.fortree.pojo.entity;
 
-import com.bjfu.fortree.pojo.entity.BaseEntity;
-import com.bjfu.fortree.pojo.entity.file.OssFile;
-import com.bjfu.fortree.pojo.entity.user.User;
 import com.bjfu.fortree.enums.entity.ApplyJobStateEnum;
 import com.bjfu.fortree.enums.entity.ApplyJobTypeEnum;
 import lombok.Getter;

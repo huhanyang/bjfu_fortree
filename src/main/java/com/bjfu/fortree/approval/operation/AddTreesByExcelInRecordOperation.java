@@ -1,15 +1,10 @@
 package com.bjfu.fortree.approval.operation;
 
-import com.alibaba.fastjson.JSONObject;
 import com.bjfu.fortree.approval.ApprovedOperation;
-import com.bjfu.fortree.config.MinioConfig;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.excel.parser.AddTreesExcelParser;
 import com.bjfu.fortree.exception.ApprovedOperationException;
-import com.bjfu.fortree.pojo.entity.apply.ApplyJob;
-import com.bjfu.fortree.pojo.entity.user.User;
-import com.bjfu.fortree.pojo.entity.woodland.Record;
-import com.bjfu.fortree.pojo.entity.woodland.Tree;
+import com.bjfu.fortree.pojo.entity.*;
 import com.bjfu.fortree.pojo.request.woodland.AddTreesRequest;
 import com.bjfu.fortree.repository.woodland.RecordRepository;
 import com.bjfu.fortree.repository.woodland.TreeRepository;
@@ -47,7 +42,8 @@ public class AddTreesByExcelInRecordOperation implements ApprovedOperation {
         }
         Record record = recordOptional.get();
         // 获取上传的文件
-        InputStream inputStream = ossService.getObject(applyJob.getDownloadFile().getOssBucketName(), applyJob.getDownloadFile().getOssObjectName());
+        OssFile uploadFile = applyJob.getUploadFile();
+        InputStream inputStream = ossService.getObject(uploadFile.getOssBucketName(), uploadFile.getOssObjectName());
         // 解析出tree参数
         List<AddTreesRequest.Tree> trees = AddTreesExcelParser.parse(inputStream);
         // 保存树木

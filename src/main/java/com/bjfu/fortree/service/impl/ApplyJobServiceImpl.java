@@ -2,11 +2,10 @@ package com.bjfu.fortree.service.impl;
 
 import com.bjfu.fortree.approval.ApprovedOperationDispatch;
 import com.bjfu.fortree.exception.*;
-import com.bjfu.fortree.pojo.dto.file.FileDownloadDTO;
-import com.bjfu.fortree.pojo.dto.job.ApplyJobDTO;
-import com.bjfu.fortree.pojo.entity.apply.ApplyJob;
-import com.bjfu.fortree.pojo.entity.file.OssFile;
-import com.bjfu.fortree.pojo.entity.user.User;
+import com.bjfu.fortree.pojo.dto.ApplyJobDTO;
+import com.bjfu.fortree.pojo.entity.ApplyJob;
+import com.bjfu.fortree.pojo.entity.OssFile;
+import com.bjfu.fortree.pojo.entity.User;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.enums.entity.ApplyJobStateEnum;
 import com.bjfu.fortree.enums.entity.UserTypeEnum;
@@ -63,7 +62,7 @@ public class ApplyJobServiceImpl implements ApplyJobService {
             }
             return query.where(predicates.toArray(new Predicate[0])).getRestriction();
         }, pageRequest);
-        return applyJobs.map(ApplyJobDTO::new);
+        return applyJobs.map(applyJob -> new ApplyJobDTO(applyJob, true, false, true, false));
     }
 
     @Override
@@ -76,7 +75,7 @@ public class ApplyJobServiceImpl implements ApplyJobService {
                 !applyJob.getApplyUser().getAccount().equals(userAccount)) {
             throw new BizException(ResultEnum.PERMISSION_DENIED);
         }
-        return new ApplyJobDTO(applyJob);
+        return new ApplyJobDTO(applyJob, true, true, true, true);
     }
 
     @Override
@@ -107,7 +106,7 @@ public class ApplyJobServiceImpl implements ApplyJobService {
         }
         // 落库
         applyJobRepository.save(applyJob);
-        return new ApplyJobDTO(applyJob);
+        return new ApplyJobDTO(applyJob, false, false, false, false);
     }
 
     @Override
@@ -133,7 +132,7 @@ public class ApplyJobServiceImpl implements ApplyJobService {
             predicates.add(cb.equal(root.get("applyUser"), user));
             return query.where(predicates.toArray(new Predicate[0])).getRestriction();
         }, pageRequest);
-        return applyJobs.map(ApplyJobDTO::new);
+        return applyJobs.map(applyJob -> new ApplyJobDTO(applyJob, false, false, false, true));
     }
 
     @Override
@@ -160,41 +159,29 @@ public class ApplyJobServiceImpl implements ApplyJobService {
         applyJob.setOperateTime(new Date());
         // 落库
         applyJobRepository.save(applyJob);
-        return new ApplyJobDTO(applyJob);
+        return new ApplyJobDTO(applyJob, false, false, false, false);
     }
 
     @Override
     @Transactional
-    public FileDownloadDTO getApplyJobDownloadFileUrl(Long applyJobId, String userAccount) {
+    public String getApplyJobDownloadFileUrl(Long applyJobId, Boolean isUploadFile, String userAccount) {
         // 获取用户信息
         User user = userRepository.findByAccount(userAccount)
                 .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
-        // 获取申请详情并加锁
-        ApplyJob applyJob = applyJobRepository.findByIdForUpdate(applyJobId)
+        // 获取申请详情
+        ApplyJob applyJob = applyJobRepository.findById(applyJobId)
                 .orElseThrow(() -> new WrongParamException(ResultEnum.APPLYJOB_NOT_EXIST));
         // 验证管理员 或 申请人
         if(!applyJob.getApplyUser().getId().equals(user.getId()) && !user.getType().equals(UserTypeEnum.ADMIN)) {
             throw new BizException(ResultEnum.NOT_APPLY_USER);
         }
         // 获取申请中的文件
-        OssFile downloadFile = applyJob.getDownloadFile();
-        Optional.ofNullable(downloadFile)
+        OssFile file = isUploadFile? applyJob.getUploadFile() : applyJob.getDownloadFile();
+        Optional.ofNullable(file)
                 .map(OssFile::getExpiresTime)
                 .filter(date -> date.getTime() > System.currentTimeMillis())
                 .orElseThrow(() -> new BizException(ResultEnum.FILE_NOT_EXIST_OR_EXPIRES));
         // 获取文件下载url
-        String downloadUrl = downloadFile.getDownloadUrl();
-        if(downloadUrl == null || downloadFile.getDownloadUrlExpiresTime().getTime() < System.currentTimeMillis()) {
-            // 下载链接失效 更新下载链接
-            downloadUrl = ossService.preSignedGetObject(downloadFile.getOssBucketName(), downloadFile.getOssObjectName());
-            Date downloadUrlExpiresTime = new Date(System.currentTimeMillis() + MinioOssServiceImpl.DEFAULT_GET_OBJECT_EXPIRES);
-            downloadFile.setDownloadUrl(downloadUrl);
-            if(downloadFile.getExpiresTime().getTime() < downloadUrlExpiresTime.getTime()) {
-                downloadUrlExpiresTime = downloadFile.getExpiresTime();
-            }
-            downloadFile.setDownloadUrlExpiresTime(downloadUrlExpiresTime);
-            ossFileRepository.save(downloadFile);
-        }
-        return new FileDownloadDTO(downloadFile);
+        return ossService.preSignedGetObject(file.getOssBucketName(), file.getOssObjectName());
     }
 }

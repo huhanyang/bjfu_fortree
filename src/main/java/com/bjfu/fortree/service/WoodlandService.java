@@ -1,9 +1,8 @@
 package com.bjfu.fortree.service;
 
-import com.bjfu.fortree.pojo.dto.job.ApplyJobDTO;
-import com.bjfu.fortree.pojo.dto.woodland.TreeDTO;
-import com.bjfu.fortree.pojo.dto.woodland.WoodlandDTO;
-import com.bjfu.fortree.pojo.dto.woodland.WoodlandDetailDTO;
+import com.bjfu.fortree.pojo.dto.ApplyJobDTO;
+import com.bjfu.fortree.pojo.dto.TreeDTO;
+import com.bjfu.fortree.pojo.dto.WoodlandDTO;
 import com.bjfu.fortree.pojo.request.woodland.*;
 import org.springframework.data.domain.Page;
 
@@ -113,7 +112,7 @@ public interface WoodlandService {
      * @param woodlandId 林地id
      * @return 林地详细信息
      */
-    WoodlandDetailDTO getWoodlandDetail(Long woodlandId);
+    WoodlandDTO getWoodlandDetail(Long woodlandId);
 
     /**
      * 获取记录中的树木

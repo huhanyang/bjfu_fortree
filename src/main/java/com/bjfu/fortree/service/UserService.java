@@ -1,6 +1,6 @@
 package com.bjfu.fortree.service;
 
-import com.bjfu.fortree.pojo.dto.user.UserDTO;
+import com.bjfu.fortree.pojo.dto.UserDTO;
 import com.bjfu.fortree.pojo.request.user.*;
 import org.springframework.data.domain.Page;
 

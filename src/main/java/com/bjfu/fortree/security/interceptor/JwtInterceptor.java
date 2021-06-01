@@ -3,7 +3,7 @@ package com.bjfu.fortree.security.interceptor;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.enums.entity.UserStateEnum;
 import com.bjfu.fortree.enums.entity.UserTypeEnum;
-import com.bjfu.fortree.pojo.dto.user.UserDTO;
+import com.bjfu.fortree.pojo.dto.UserDTO;
 import com.bjfu.fortree.security.annotation.RequireAdmin;
 import com.bjfu.fortree.security.annotation.RequireLogin;
 import com.bjfu.fortree.security.annotation.RequireUser;

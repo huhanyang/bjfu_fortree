@@ -1,7 +1,8 @@
-package com.bjfu.fortree.pojo.entity.woodland;
+package com.bjfu.fortree.pojo.entity;
 
 import com.bjfu.fortree.pojo.entity.BaseEntity;
-import com.bjfu.fortree.pojo.entity.user.User;
+import com.bjfu.fortree.pojo.entity.Record;
+import com.bjfu.fortree.pojo.entity.User;
 import com.bjfu.fortree.enums.entity.WoodlandShapeEnum;
 import lombok.Getter;
 import lombok.Setter;
@@ -81,7 +82,7 @@ public class Woodland extends BaseEntity {
     /**
      * 创建的记录
      */
-    @OneToMany(mappedBy = "woodland")
     @OrderBy("measureTime")
+    @OneToMany(mappedBy = "woodland")
     private List<Record> records = new ArrayList<>();
 }

@@ -1,6 +1,5 @@
-package com.bjfu.fortree.pojo.entity.user;
+package com.bjfu.fortree.pojo.entity;
 
-import com.bjfu.fortree.pojo.entity.BaseEntity;
 import com.bjfu.fortree.enums.entity.AuthorityTypeEnum;
 import lombok.Getter;
 import lombok.Setter;

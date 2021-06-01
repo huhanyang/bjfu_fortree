@@ -1,6 +1,6 @@
 package com.bjfu.fortree.approval;
 
-import com.bjfu.fortree.pojo.entity.apply.ApplyJob;
+import com.bjfu.fortree.pojo.entity.ApplyJob;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.enums.entity.ApplyJobStateEnum;
 import com.bjfu.fortree.exception.ForTreeException;

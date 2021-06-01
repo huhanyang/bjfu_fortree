@@ -1,7 +1,7 @@
 package com.bjfu.fortree.repository.job;
 
-import com.bjfu.fortree.pojo.entity.apply.ApplyJob;
-import com.bjfu.fortree.pojo.entity.user.User;
+import com.bjfu.fortree.pojo.entity.ApplyJob;
+import com.bjfu.fortree.pojo.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
@@ -31,5 +31,5 @@ public interface ApplyJobRepository extends JpaRepository<ApplyJob, Long>, JpaSp
      * @param applyUser 申请人
      * @return 申请实体列表
      */
-    List<ApplyJob> findByApplyUser(User applyUser);
+    List<ApplyJob> findAllByApplyUser(User applyUser);
 }

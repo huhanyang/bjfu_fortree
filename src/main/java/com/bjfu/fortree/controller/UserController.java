@@ -1,14 +1,14 @@
 package com.bjfu.fortree.controller;
 
 import com.bjfu.fortree.exception.SystemWrongException;
-import com.bjfu.fortree.pojo.dto.user.UserDTO;
+import com.bjfu.fortree.pojo.dto.UserDTO;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.pojo.request.user.*;
+import com.bjfu.fortree.pojo.vo.UserVO;
 import com.bjfu.fortree.security.annotation.RequireAdmin;
 import com.bjfu.fortree.security.annotation.RequireLogin;
 import com.bjfu.fortree.service.UserService;
-import com.bjfu.fortree.pojo.vo.BaseResult;
-import com.bjfu.fortree.pojo.vo.user.UserVO;
+import com.bjfu.fortree.pojo.BaseResult;
 import com.bjfu.fortree.util.JwtUtil;
 import com.bjfu.fortree.util.UserInfoContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;

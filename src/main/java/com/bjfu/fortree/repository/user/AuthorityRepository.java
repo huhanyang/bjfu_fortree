@@ -1,7 +1,7 @@
 package com.bjfu.fortree.repository.user;
 
-import com.bjfu.fortree.pojo.entity.user.Authority;
-import com.bjfu.fortree.pojo.entity.user.User;
+import com.bjfu.fortree.pojo.entity.Authority;
+import com.bjfu.fortree.pojo.entity.User;
 import com.bjfu.fortree.enums.entity.AuthorityTypeEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
 

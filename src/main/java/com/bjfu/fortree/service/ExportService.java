@@ -1,6 +1,6 @@
 package com.bjfu.fortree.service;
 
-import com.bjfu.fortree.pojo.dto.job.ApplyJobDTO;
+import com.bjfu.fortree.pojo.dto.ApplyJobDTO;
 import com.bjfu.fortree.pojo.request.export.ExportWoodlandsInBoundsRequest;
 
 import javax.servlet.http.HttpServletResponse;

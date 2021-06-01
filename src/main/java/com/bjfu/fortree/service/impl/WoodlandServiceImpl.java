@@ -3,17 +3,15 @@ package com.bjfu.fortree.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.bjfu.fortree.approval.ApprovedOperationDispatch;
 import com.bjfu.fortree.config.MinioConfig;
-import com.bjfu.fortree.enums.entity.FileTypeEnum;
-import com.bjfu.fortree.pojo.dto.job.ApplyJobDTO;
-import com.bjfu.fortree.pojo.dto.woodland.TreeDTO;
-import com.bjfu.fortree.pojo.dto.woodland.WoodlandDTO;
-import com.bjfu.fortree.pojo.dto.woodland.WoodlandDetailDTO;
-import com.bjfu.fortree.pojo.entity.apply.ApplyJob;
-import com.bjfu.fortree.pojo.entity.file.OssFile;
-import com.bjfu.fortree.pojo.entity.user.User;
-import com.bjfu.fortree.pojo.entity.woodland.Record;
-import com.bjfu.fortree.pojo.entity.woodland.Tree;
-import com.bjfu.fortree.pojo.entity.woodland.Woodland;
+import com.bjfu.fortree.pojo.dto.ApplyJobDTO;
+import com.bjfu.fortree.pojo.dto.TreeDTO;
+import com.bjfu.fortree.pojo.dto.WoodlandDTO;
+import com.bjfu.fortree.pojo.entity.ApplyJob;
+import com.bjfu.fortree.pojo.entity.OssFile;
+import com.bjfu.fortree.pojo.entity.User;
+import com.bjfu.fortree.pojo.entity.Record;
+import com.bjfu.fortree.pojo.entity.Tree;
+import com.bjfu.fortree.pojo.entity.Woodland;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.enums.entity.ApplyJobTypeEnum;
 import com.bjfu.fortree.enums.entity.AuthorityTypeEnum;
@@ -80,13 +78,13 @@ public class WoodlandServiceImpl implements WoodlandService {
             applyJobRepository.save(passedApply);
             // 执行审批通过后的操作
             approvedOperationDispatch.dispatch(passedApply);
-            return new ApplyJobDTO(passedApply);
+            return new ApplyJobDTO(passedApply, false, false, false, false);
         } else {
             // 生成状态为申请中的申请实体
             ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.CREATE_WOODLAND, applyParam);
             // 申请实体落库
             applyJobRepository.save(apply);
-            return new ApplyJobDTO(apply);
+            return new ApplyJobDTO(apply, false, false, false, false);
         }
     }
 
@@ -110,13 +108,13 @@ public class WoodlandServiceImpl implements WoodlandService {
             applyJobRepository.save(passedApply);
             // 执行审批通过后的操作
             approvedOperationDispatch.dispatch(passedApply);
-            return new ApplyJobDTO(passedApply);
+            return new ApplyJobDTO(passedApply, false, false, false ,false);
         } else {
             // 生成状态为申请中的申请实体
             ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.ADD_RECORD_IN_WOODLAND, applyParam);
             // 申请实体落库
             applyJobRepository.save(apply);
-            return new ApplyJobDTO(apply);
+            return new ApplyJobDTO(apply, false, false, false, false);
         }
     }
 
@@ -141,13 +139,13 @@ public class WoodlandServiceImpl implements WoodlandService {
             applyJobRepository.save(passedApply);
             // 执行审批通过后的操作
             approvedOperationDispatch.dispatch(passedApply);
-            return new ApplyJobDTO(passedApply);
+            return new ApplyJobDTO(passedApply, false, false, false, false);
         } else {
             // 生成状态为申请中的申请实体
             ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.ADD_TREES_IN_RECORD, applyParam);
             // 申请实体落库
             applyJobRepository.save(apply);
-            return new ApplyJobDTO(apply);
+            return new ApplyJobDTO(apply, false, false, false, false);
         }
     }
 
@@ -171,7 +169,6 @@ public class WoodlandServiceImpl implements WoodlandService {
         // 记录上传的文件信息
         OssFile ossFile = new OssFile();
         ossFile.setFileName(request.getFileName());
-        ossFile.setType(FileTypeEnum.USER_APPLY_FILE);
         ossFile.setOssBucketName(MinioConfig.APPLY_EXCEL_BUCKET_NAME);
         ossFile.setOssObjectName(ossObjectName);
         ossFileRepository.save(ossFile);
@@ -183,13 +180,13 @@ public class WoodlandServiceImpl implements WoodlandService {
                 record.getCreator().getId().equals(user.getId())) {
             // 生成状态为通过的申请实体
             ApplyJob passedApply = ApplyJob.createPassedApply(user, ApplyJobTypeEnum.ADD_TREES_BY_EXCEL_IN_RECORD, applyParam);
-            // 文件保存到申请实体的下载项中
-            passedApply.setDownloadFile(ossFile);
+            // 文件保存到申请实体的上传项中
+            passedApply.setUploadFile(ossFile);
             // 申请实体落库
             applyJobRepository.save(passedApply);
             // 执行审批通过后的操作
             approvedOperationDispatch.dispatch(passedApply);
-            return new ApplyJobDTO(passedApply);
+            return new ApplyJobDTO(passedApply, false, false, false, false);
         } else {
             // 生成状态为申请中的申请实体
             ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.ADD_TREES_BY_EXCEL_IN_RECORD, applyParam);
@@ -197,7 +194,7 @@ public class WoodlandServiceImpl implements WoodlandService {
             apply.setDownloadFile(ossFile);
             // 申请实体落库
             applyJobRepository.save(apply);
-            return new ApplyJobDTO(apply);
+            return new ApplyJobDTO(apply, false, false, false, false);
         }
     }
 
@@ -221,13 +218,13 @@ public class WoodlandServiceImpl implements WoodlandService {
             applyJobRepository.save(passedApply);
             // 执行审批通过后的操作
             approvedOperationDispatch.dispatch(passedApply);
-            return new ApplyJobDTO(passedApply);
+            return new ApplyJobDTO(passedApply, false, false, false, false);
         } else {
             // 生成状态为申请中的申请实体
             ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.DELETE_WOODLAND, applyParam);
             // 申请实体落库
             applyJobRepository.save(apply);
-            return new ApplyJobDTO(apply);
+            return new ApplyJobDTO(apply, false, false, false, false);
         }
     }
 
@@ -252,13 +249,13 @@ public class WoodlandServiceImpl implements WoodlandService {
             applyJobRepository.save(passedApply);
             // 执行审批通过后的操作
             approvedOperationDispatch.dispatch(passedApply);
-            return new ApplyJobDTO(passedApply);
+            return new ApplyJobDTO(passedApply, false, false, false, false);
         } else {
             // 生成状态为申请中的申请实体
             ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.DELETE_RECORD_IN_WOODLAND, applyParam);
             // 申请实体落库
             applyJobRepository.save(apply);
-            return new ApplyJobDTO(apply);
+            return new ApplyJobDTO(apply, false, false, false, false);
         }
     }
 
@@ -291,13 +288,13 @@ public class WoodlandServiceImpl implements WoodlandService {
             applyJobRepository.save(passedApply);
             // 执行审批通过后的操作
             approvedOperationDispatch.dispatch(passedApply);
-            return new ApplyJobDTO(passedApply);
+            return new ApplyJobDTO(passedApply, false, false, false, false);
         } else {
             // 生成状态为申请中的申请实体
             ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.DELETE_TREES_IN_RECORD, applyParam);
             // 申请实体落库
             applyJobRepository.save(apply);
-            return new ApplyJobDTO(apply);
+            return new ApplyJobDTO(apply, false, false, false, false);
         }
     }
 
@@ -321,13 +318,13 @@ public class WoodlandServiceImpl implements WoodlandService {
             applyJobRepository.save(passedApply);
             // 执行审批通过后的操作
             approvedOperationDispatch.dispatch(passedApply);
-            return new ApplyJobDTO(passedApply);
+            return new ApplyJobDTO(passedApply, false, false, false, false);
         } else {
             // 生成状态为申请中的申请实体
             ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.EDIT_WOODLAND, applyParam);
             // 申请实体落库
             applyJobRepository.save(apply);
-            return new ApplyJobDTO(apply);
+            return new ApplyJobDTO(apply, false, false, false, false);
         }
     }
 
@@ -352,13 +349,13 @@ public class WoodlandServiceImpl implements WoodlandService {
             applyJobRepository.save(passedApply);
             // 执行审批通过后的操作
             approvedOperationDispatch.dispatch(passedApply);
-            return new ApplyJobDTO(passedApply);
+            return new ApplyJobDTO(passedApply, false, false, false, false);
         } else {
             // 生成状态为申请中的申请实体
             ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.EDIT_RECORD, applyParam);
             // 申请实体落库
             applyJobRepository.save(apply);
-            return new ApplyJobDTO(apply);
+            return new ApplyJobDTO(apply, false, false, false, false);
         }
     }
 
@@ -385,14 +382,14 @@ public class WoodlandServiceImpl implements WoodlandService {
             }
             return query.where(predicates.toArray(new Predicate[0])).getRestriction();
         }, pageRequest);
-        return woodlands.map(WoodlandDTO::new);
+        return woodlands.map(woodland -> new WoodlandDTO(woodland, true, false));
     }
 
     @Override
     public List<WoodlandDTO> getAllWoodlands() {
         List<Woodland> woodlands = woodlandRepository.findAll();
         return woodlands.stream()
-                .map(WoodlandDTO::new)
+                .map(woodland -> new WoodlandDTO(woodland, false, false))
                 .collect(Collectors.toList());
     }
 
@@ -423,14 +420,14 @@ public class WoodlandServiceImpl implements WoodlandService {
             }
             return query.where(predicates.toArray(new Predicate[0])).getRestriction();
         }, pageRequest);
-        return woodlands.map(WoodlandDTO::new);
+        return woodlands.map(woodland -> new WoodlandDTO(woodland, false, false));
     }
 
     @Override
-    public WoodlandDetailDTO getWoodlandDetail(Long woodlandId) {
+    public WoodlandDTO getWoodlandDetail(Long woodlandId) {
         Woodland woodland = woodlandRepository.findById(woodlandId)
                 .orElseThrow(() -> new WrongParamException(ResultEnum.WOODLAND_NOT_EXIST));
-        return new WoodlandDetailDTO(woodland);
+        return new WoodlandDTO(woodland, true, true);
     }
 
     @Override
@@ -456,7 +453,7 @@ public class WoodlandServiceImpl implements WoodlandService {
             predicates.add(cb.equal(root.get("record"), record));
             return query.where(predicates.toArray(new Predicate[0])).getRestriction();
         }, pageRequest);
-        return trees.map(TreeDTO::new);
+        return trees.map(tree -> new TreeDTO(tree, false));
     }
 
 }

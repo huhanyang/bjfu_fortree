@@ -2,10 +2,10 @@ package com.bjfu.fortree.approval.operation;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bjfu.fortree.approval.ApprovedOperation;
-import com.bjfu.fortree.pojo.entity.apply.ApplyJob;
-import com.bjfu.fortree.pojo.entity.user.User;
-import com.bjfu.fortree.pojo.entity.woodland.Record;
-import com.bjfu.fortree.pojo.entity.woodland.Tree;
+import com.bjfu.fortree.pojo.entity.ApplyJob;
+import com.bjfu.fortree.pojo.entity.User;
+import com.bjfu.fortree.pojo.entity.Record;
+import com.bjfu.fortree.pojo.entity.Tree;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.exception.ApprovedOperationException;
 import com.bjfu.fortree.repository.woodland.RecordRepository;

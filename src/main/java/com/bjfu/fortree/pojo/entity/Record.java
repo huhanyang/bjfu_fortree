@@ -1,7 +1,5 @@
-package com.bjfu.fortree.pojo.entity.woodland;
+package com.bjfu.fortree.pojo.entity;
 
-import com.bjfu.fortree.pojo.entity.BaseEntity;
-import com.bjfu.fortree.pojo.entity.user.User;
 import lombok.Getter;
 import lombok.Setter;
 

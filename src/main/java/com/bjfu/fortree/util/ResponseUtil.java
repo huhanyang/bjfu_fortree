@@ -2,7 +2,7 @@ package com.bjfu.fortree.util;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bjfu.fortree.enums.ResultEnum;
-import com.bjfu.fortree.pojo.vo.BaseResult;
+import com.bjfu.fortree.pojo.BaseResult;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;

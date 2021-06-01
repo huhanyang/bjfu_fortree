@@ -1,9 +1,9 @@
 package com.bjfu.fortree.service.impl;
 
 import com.bjfu.fortree.exception.BizException;
-import com.bjfu.fortree.pojo.dto.user.UserDTO;
-import com.bjfu.fortree.pojo.entity.user.Authority;
-import com.bjfu.fortree.pojo.entity.user.User;
+import com.bjfu.fortree.pojo.dto.UserDTO;
+import com.bjfu.fortree.pojo.entity.Authority;
+import com.bjfu.fortree.pojo.entity.User;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.enums.entity.AuthorityTypeEnum;
 import com.bjfu.fortree.enums.entity.UserStateEnum;
@@ -51,7 +51,7 @@ public class UserServiceImpl implements UserService {
             throw new BizException(ResultEnum.ACCOUNT_BANNED);
         }
         // 返回用户信息
-        return new UserDTO(user);
+        return new UserDTO(user, true, true, true, true);
     }
 
     @Override
@@ -69,14 +69,14 @@ public class UserServiceImpl implements UserService {
         // 落库
         userRepository.save(user);
         // 返回用户信息
-        return new UserDTO(user);
+        return new UserDTO(user, false, false, false, false);
     }
 
     @Override
     public UserDTO getInfo(String userAccount) {
         User user = userRepository.findByAccount(userAccount)
                 .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
-        return new UserDTO(user);
+        return new UserDTO(user, true, true, true, true);
     }
 
     @Override
@@ -169,7 +169,7 @@ public class UserServiceImpl implements UserService {
             }
             return query.where(predicates.toArray(new Predicate[0])).getRestriction();
         }, pageRequest);
-        return users.map(UserDTO::new);
+        return users.map(user -> new UserDTO(user, false, false, false, false));
     }
 
     @Override

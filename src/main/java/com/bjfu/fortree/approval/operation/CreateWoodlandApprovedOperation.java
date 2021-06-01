@@ -2,9 +2,9 @@ package com.bjfu.fortree.approval.operation;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bjfu.fortree.approval.ApprovedOperation;
-import com.bjfu.fortree.pojo.entity.apply.ApplyJob;
-import com.bjfu.fortree.pojo.entity.user.User;
-import com.bjfu.fortree.pojo.entity.woodland.Woodland;
+import com.bjfu.fortree.pojo.entity.ApplyJob;
+import com.bjfu.fortree.pojo.entity.User;
+import com.bjfu.fortree.pojo.entity.Woodland;
 import com.bjfu.fortree.repository.woodland.WoodlandRepository;
 import com.bjfu.fortree.pojo.request.woodland.CreateWoodlandRequest;
 import com.bjfu.fortree.spatial.G2dPoint;

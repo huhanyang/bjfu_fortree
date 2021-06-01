@@ -10,17 +10,14 @@ import org.springframework.scheduling.annotation.EnableAsync;
  * 启动类
  * @author warthog
  */
-@EnableJpaRepositories
-@EnableJpaAuditing
 @EnableAsync
+@EnableJpaAuditing
+@EnableJpaRepositories
 @SpringBootApplication
 public class ForTreeApplication {
 
 	public static void main(String[] args) {
-		// todo 后端异常处理链路
-		// todo 前端异常响应码拦截
-		// todo 前端多边形excel导出接入
-		// todo 前端部署时路由问题
+		// todo entity dto vo重构
 		SpringApplication.run(ForTreeApplication.class, args);
 	}
 

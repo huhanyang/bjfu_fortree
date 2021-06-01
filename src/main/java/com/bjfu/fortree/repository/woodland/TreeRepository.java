@@ -1,10 +1,10 @@
 package com.bjfu.fortree.repository.woodland;
 
-import com.bjfu.fortree.pojo.entity.woodland.Tree;
+import com.bjfu.fortree.pojo.entity.Tree;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
  * 树木的持久接口
@@ -16,6 +16,6 @@ public interface TreeRepository extends JpaRepository<Tree, Long>, JpaSpecificat
      * 根据id集合删除树木实体
      * @param ids 要删除的id集合
      */
-    void deleteByIdIn(Collection<Long> ids);
+    void deleteByIdIn(List<Long> ids);
 
 }

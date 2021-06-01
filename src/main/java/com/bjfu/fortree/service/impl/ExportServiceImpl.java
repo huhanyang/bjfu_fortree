@@ -6,10 +6,10 @@ import com.alibaba.excel.write.metadata.WriteSheet;
 import com.alibaba.excel.write.metadata.WriteTable;
 import com.alibaba.fastjson.JSONObject;
 import com.bjfu.fortree.approval.ApprovedOperationDispatch;
-import com.bjfu.fortree.pojo.dto.job.ApplyJobDTO;
-import com.bjfu.fortree.pojo.entity.apply.ApplyJob;
-import com.bjfu.fortree.pojo.entity.user.User;
-import com.bjfu.fortree.pojo.entity.woodland.Woodland;
+import com.bjfu.fortree.pojo.dto.ApplyJobDTO;
+import com.bjfu.fortree.pojo.entity.ApplyJob;
+import com.bjfu.fortree.pojo.entity.User;
+import com.bjfu.fortree.pojo.entity.Woodland;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.enums.entity.ApplyJobTypeEnum;
 import com.bjfu.fortree.enums.entity.AuthorityTypeEnum;
@@ -118,14 +118,14 @@ public class ExportServiceImpl implements ExportService {
             applyJobRepository.save(passedApply);
             // 执行审批通过后的操作
             approvedOperationDispatch.asyncDispatch(passedApply);
-            return new ApplyJobDTO(passedApply);
+            return new ApplyJobDTO(passedApply, false, false, false, false);
         } else {
             // 生成状态为申请中的申请实体
             ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.EXPORT_WOODLANDS_INFO, applyParam,
                     exportWoodlandsName);
             // 申请实体落库
             applyJobRepository.save(apply);
-            return new ApplyJobDTO(apply);
+            return new ApplyJobDTO(apply, false, false, false, false);
         }
     }
 
@@ -137,7 +137,7 @@ public class ExportServiceImpl implements ExportService {
                 .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
         // 生成申请信息简介
         StringBuilder stringBuilder = new StringBuilder();
-        woodlandRepository.findWoodlandsInBounds(request.getPolygon().convertToGeom())
+        woodlandRepository.findAllInBounds(request.getPolygon().convertToGeom())
                 .forEach(woodland -> stringBuilder.append(woodland.getName()).append(','));
         String exportWoodlandsName = stringBuilder.toString();
         if(stringBuilder.capacity() > 250) {
@@ -154,14 +154,14 @@ public class ExportServiceImpl implements ExportService {
             applyJobRepository.save(passedApply);
             // 执行审批通过后的操作
             approvedOperationDispatch.asyncDispatch(passedApply);
-            return new ApplyJobDTO(passedApply);
+            return new ApplyJobDTO(passedApply, false, false, false, false);
         } else {
             // 生成状态为申请中的申请实体
             ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.EXPORT_WOODLANDS_INFO, applyParam,
                     exportWoodlandsName);
             // 申请实体落库
             applyJobRepository.save(apply);
-            return new ApplyJobDTO(apply);
+            return new ApplyJobDTO(apply, false, false, false, false);
         }
     }
 

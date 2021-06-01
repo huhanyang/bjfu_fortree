@@ -2,7 +2,7 @@ package com.bjfu.fortree.controller;
 
 import com.bjfu.fortree.exception.ForTreeException;
 import com.bjfu.fortree.exception.WrongParamException;
-import com.bjfu.fortree.pojo.vo.BaseResult;
+import com.bjfu.fortree.pojo.BaseResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;

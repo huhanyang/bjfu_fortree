@@ -1,7 +1,6 @@
 package com.bjfu.fortree.service;
 
-import com.bjfu.fortree.pojo.dto.file.FileDownloadDTO;
-import com.bjfu.fortree.pojo.dto.job.ApplyJobDTO;
+import com.bjfu.fortree.pojo.dto.ApplyJobDTO;
 import com.bjfu.fortree.pojo.request.apply.ApprovalApplyJobRequest;
 import com.bjfu.fortree.pojo.request.apply.GetAllApplyJobRequest;
 import com.bjfu.fortree.pojo.request.apply.GetMyApplyJobRequest;
@@ -54,8 +53,9 @@ public interface ApplyJobService {
     /**
      * 获取文件下载链接
      * @param applyJobId 申请id
+     * @param isUploadFile 是否为上传文件
      * @param userAccount 操作者用户账号
      * @return 申请实体
      */
-    FileDownloadDTO getApplyJobDownloadFileUrl(Long applyJobId, String userAccount);
+    String getApplyJobDownloadFileUrl(Long applyJobId, Boolean isUploadFile, String userAccount);
 }

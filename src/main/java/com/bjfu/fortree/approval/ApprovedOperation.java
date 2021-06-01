@@ -1,7 +1,7 @@
 package com.bjfu.fortree.approval;
 
-import com.bjfu.fortree.pojo.entity.apply.ApplyJob;
-import com.bjfu.fortree.pojo.entity.user.User;
+import com.bjfu.fortree.pojo.entity.ApplyJob;
+import com.bjfu.fortree.pojo.entity.User;
 
 /**
  * 申请审批通过后需要执行操作的接口

@@ -1,6 +1,5 @@
-package com.bjfu.fortree.pojo.entity.user;
+package com.bjfu.fortree.pojo.entity;
 
-import com.bjfu.fortree.pojo.entity.BaseEntity;
 import com.bjfu.fortree.enums.entity.UserStateEnum;
 import com.bjfu.fortree.enums.entity.UserTypeEnum;
 import lombok.Getter;
@@ -58,4 +57,24 @@ public class User extends BaseEntity {
      */
     @OneToMany(cascade=CascadeType.ALL, mappedBy = "user")
     private List<Authority> authorities = new ArrayList<>();
+
+    /**
+     * 创建的林地
+     */
+    @OneToMany(cascade=CascadeType.ALL, mappedBy = "creator")
+    private List<Woodland> woodlands = new ArrayList<>();
+
+    /**
+     * 创建的记录
+     */
+    @OneToMany(cascade=CascadeType.ALL, mappedBy = "creator")
+    private List<Record> records = new ArrayList<>();
+
+    /**
+     * 申请
+     */
+    @OneToMany(cascade=CascadeType.ALL, mappedBy = "applyUser")
+    private List<ApplyJob> applyJobs = new ArrayList<>();
+
+
 }

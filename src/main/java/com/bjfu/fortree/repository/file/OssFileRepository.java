@@ -1,6 +1,6 @@
 package com.bjfu.fortree.repository.file;
 
-import com.bjfu.fortree.pojo.entity.file.OssFile;
+import com.bjfu.fortree.pojo.entity.OssFile;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**

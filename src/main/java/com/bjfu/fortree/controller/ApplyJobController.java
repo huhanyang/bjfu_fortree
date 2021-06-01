@@ -1,19 +1,17 @@
 package com.bjfu.fortree.controller;
 
 import com.bjfu.fortree.exception.SystemWrongException;
-import com.bjfu.fortree.pojo.dto.file.FileDownloadDTO;
-import com.bjfu.fortree.pojo.dto.job.ApplyJobDTO;
+import com.bjfu.fortree.pojo.dto.ApplyJobDTO;
 import com.bjfu.fortree.enums.ResultEnum;
-import com.bjfu.fortree.pojo.dto.user.UserDTO;
+import com.bjfu.fortree.pojo.dto.UserDTO;
 import com.bjfu.fortree.pojo.request.apply.ApprovalApplyJobRequest;
 import com.bjfu.fortree.pojo.request.apply.GetAllApplyJobRequest;
 import com.bjfu.fortree.pojo.request.apply.GetMyApplyJobRequest;
+import com.bjfu.fortree.pojo.vo.ApplyJobVO;
 import com.bjfu.fortree.security.annotation.RequireAdmin;
 import com.bjfu.fortree.security.annotation.RequireLogin;
 import com.bjfu.fortree.service.ApplyJobService;
-import com.bjfu.fortree.pojo.vo.BaseResult;
-import com.bjfu.fortree.pojo.vo.apply.ApplyJobVO;
-import com.bjfu.fortree.pojo.vo.file.FileDownloadVO;
+import com.bjfu.fortree.pojo.BaseResult;
 import com.bjfu.fortree.util.UserInfoContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -83,11 +81,12 @@ public class ApplyJobController {
 
     @RequireLogin
     @GetMapping("/getApplyJobDownloadFileUrl")
-    public BaseResult<FileDownloadVO> getApplyJobDownloadFileUrl(@NotNull(message = "申请id不能为空!") Long id) {
+    public BaseResult<String> getApplyJobDownloadFileUrl(@NotNull(message = "申请id不能为空!") Long id,
+                                                         @NotNull(message = "是否为上传文件不能为空") Boolean isUploadFile) {
         UserDTO userInfo = UserInfoContextUtil.getUserInfo()
                 .orElseThrow(() -> new SystemWrongException(ResultEnum.USER_INFO_CONTEXT_WRONG));
-        FileDownloadDTO fileDownloadDTO = applyJobService.getApplyJobDownloadFileUrl(id, userInfo.getAccount());
-        return new BaseResult<>(ResultEnum.SUCCESS, new FileDownloadVO(fileDownloadDTO));
+        String fileDownloadUrl = applyJobService.getApplyJobDownloadFileUrl(id, isUploadFile, userInfo.getAccount());
+        return new BaseResult<>(ResultEnum.SUCCESS, fileDownloadUrl);
     }
 
 }

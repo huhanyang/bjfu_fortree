@@ -1,4 +1,4 @@
-package com.bjfu.fortree.pojo.vo;
+package com.bjfu.fortree.pojo;
 
 import com.bjfu.fortree.enums.ResultEnum;
 import lombok.Data;

@@ -1,13 +1,10 @@
-package com.bjfu.fortree.pojo.entity.file;
+package com.bjfu.fortree.pojo.entity;
 
-import com.bjfu.fortree.pojo.entity.BaseEntity;
-import com.bjfu.fortree.enums.entity.FileTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.Enumerated;
 import javax.persistence.Table;
 import java.util.Date;
 
@@ -20,19 +17,11 @@ import java.util.Date;
 @Entity
 @Table(name = "fortree_oss_file")
 public class OssFile extends BaseEntity {
-
     /**
      * 文件名
      */
     @Column(nullable = false, length = 32)
     private String fileName;
-    /**
-     * 文件类型
-     */
-    @Enumerated
-    @Column(nullable = false)
-    private FileTypeEnum type;
-
     /**
      * 文件所在oss里的bucket
      */
@@ -48,15 +37,4 @@ public class OssFile extends BaseEntity {
      */
     @Column
     private Date expiresTime;
-
-    /**
-     * 下载用url
-     */
-    @Column(length = 512)
-    private String downloadUrl;
-    /**
-     * 下载用url过期时间
-     */
-    @Column
-    private Date downloadUrlExpiresTime;
 }

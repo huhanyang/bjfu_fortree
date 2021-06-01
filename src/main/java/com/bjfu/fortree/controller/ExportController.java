@@ -1,17 +1,17 @@
 package com.bjfu.fortree.controller;
 
 import com.bjfu.fortree.exception.SystemWrongException;
-import com.bjfu.fortree.pojo.dto.job.ApplyJobDTO;
+import com.bjfu.fortree.pojo.dto.ApplyJobDTO;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.exception.ExportExcelException;
-import com.bjfu.fortree.pojo.dto.user.UserDTO;
+import com.bjfu.fortree.pojo.dto.UserDTO;
 import com.bjfu.fortree.pojo.request.export.ExportWoodlandsInBoundsRequest;
 import com.bjfu.fortree.pojo.request.export.ExportWoodlandsInfoRequest;
+import com.bjfu.fortree.pojo.vo.ApplyJobVO;
 import com.bjfu.fortree.security.annotation.RequireLogin;
 import com.bjfu.fortree.service.ExportService;
 import com.bjfu.fortree.util.ResponseUtil;
-import com.bjfu.fortree.pojo.vo.BaseResult;
-import com.bjfu.fortree.pojo.vo.apply.ApplyJobVO;
+import com.bjfu.fortree.pojo.BaseResult;
 import com.bjfu.fortree.util.UserInfoContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;

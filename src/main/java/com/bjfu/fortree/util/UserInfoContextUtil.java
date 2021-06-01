@@ -1,6 +1,6 @@
 package com.bjfu.fortree.util;
 
-import com.bjfu.fortree.pojo.dto.user.UserDTO;
+import com.bjfu.fortree.pojo.dto.UserDTO;
 
 import java.util.Optional;
 
