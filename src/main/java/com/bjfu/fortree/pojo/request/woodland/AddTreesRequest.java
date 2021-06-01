@@ -35,8 +35,7 @@ public class AddTreesRequest {
         /**
          * 树的编号
          */
-        @NotNull(message = "平均树高不能为空")
-        @Length(min = 1, max = 32, message = "附加信息长度最大512个字符")
+        @Length(max = 32, message = "树的编号长度最大32个字符")
         private String treeId;
         /**
          * 树种

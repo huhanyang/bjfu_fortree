@@ -1,8 +1,11 @@
 package com.bjfu.fortree.pojo.request.woodland;
 
+import com.bjfu.fortree.pojo.request.BasePageAndSorterRequest;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.data.domain.Sort;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -10,18 +13,26 @@ import java.util.List;
  * @author warthog
  */
 @Data
-public class GetWoodlandsRequest {
-    //分页
-    @NotNull(message = "分页当前页数不能为空")
-    private Integer current;
-    @NotNull(message = "分页每页的数量不能为空")
-    private Integer pageSize;
-    //过滤
-    private List<String> name;
-    private List<String> country;
-    private List<String> province;
-    private List<String> city;
-    //排序
-    private String field;
-    private Sort.Direction order;
+@EqualsAndHashCode(callSuper = true)
+public class GetWoodlandsRequest extends BasePageAndSorterRequest {
+    /**
+     * 按林地名模糊搜索
+     */
+    @Nullable
+    private String name;
+    /**
+     * 按国家名模糊搜索
+     */
+    @Nullable
+    private String country;
+    /**
+     * 按省名模糊搜索
+     */
+    @Nullable
+    private String province;
+    /**
+     * 按城市名模糊搜索
+     */
+    @Nullable
+    private String city;
 }

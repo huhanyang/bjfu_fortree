@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.constraints.NotNull;
 import java.util.Collections;
 
 /**
@@ -55,9 +56,16 @@ public class UserController {
         return new BaseResult<>(ResultEnum.SUCCESS);
     }
 
+    @RequireAdmin
+    @GetMapping("/getUserInfo")
+    public BaseResult<UserVO> getUserInfo(@NotNull(message = "用户账号不能为空") String account) {
+        UserDTO userDTO = userService.getInfo(account);
+        return new BaseResult<>(ResultEnum.SUCCESS, new UserVO(userDTO));
+    }
+
     @RequireLogin
-    @GetMapping("/getInfo")
-    public BaseResult<UserVO> getInfo() {
+    @GetMapping("/me")
+    public BaseResult<UserVO> me() {
         UserDTO userInfo = UserInfoContextUtil.getUserInfo()
                 .orElseThrow(() -> new SystemWrongException(ResultEnum.USER_INFO_CONTEXT_WRONG));
         UserDTO userDTO = userService.getInfo(userInfo.getAccount());

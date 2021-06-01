@@ -10,6 +10,7 @@ import com.bjfu.fortree.enums.entity.UserStateEnum;
 import com.bjfu.fortree.enums.entity.UserTypeEnum;
 import com.bjfu.fortree.exception.SystemWrongException;
 import com.bjfu.fortree.exception.WrongParamException;
+import com.bjfu.fortree.pojo.request.BasePageAndSorterRequest;
 import com.bjfu.fortree.repository.user.AuthorityRepository;
 import com.bjfu.fortree.repository.user.UserRepository;
 import com.bjfu.fortree.pojo.request.user.*;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import javax.persistence.criteria.Predicate;
 import javax.transaction.Transactional;
@@ -143,29 +145,49 @@ public class UserServiceImpl implements UserService {
         authorityRepository.deleteAll(needDeleteAuthorities);
     }
 
+    /**
+     * 用户实体属性顺序
+     */
+    private static final Map<String, Integer> USER_FIELD_ORDER_WEIGHT = new HashMap<>();
+    static {
+        USER_FIELD_ORDER_WEIGHT.put("account", 1);
+        USER_FIELD_ORDER_WEIGHT.put("type", 2);
+        USER_FIELD_ORDER_WEIGHT.put("state", 3);
+        USER_FIELD_ORDER_WEIGHT.put("name", 4);
+        USER_FIELD_ORDER_WEIGHT.put("organization", 5);
+
+    }
+
     @Override
-    public Page<UserDTO> getUsers(GetUsersRequest getUsersRequest) {
-        PageRequest pageRequest = PageRequest.of(getUsersRequest.getCurrent() - 1, getUsersRequest.getPageSize());
-        if(getUsersRequest.getField() != null) {
-            Sort sort = Sort.by(new Sort.Order(getUsersRequest.getOrder(), getUsersRequest.getField()));
-            pageRequest = PageRequest.of(getUsersRequest.getCurrent() - 1, getUsersRequest.getPageSize(), sort);
-        }
+    public Page<UserDTO> getUsers(GetUsersRequest request) {
+        BasePageAndSorterRequest.Pagination pagination = request.getPagination();
+        // 构建多属性排序
+        List<Sort.Order> orders = Optional.ofNullable(request.getSorter()).orElse(new LinkedList<>())
+                .stream()
+                .filter(singleSorter -> StringUtils.hasText(singleSorter.getField()))
+                .sorted(Comparator.comparingInt(s -> USER_FIELD_ORDER_WEIGHT.get(s.getField())))
+                .map(singleSorter -> new Sort.Order(singleSorter.getOrder(), singleSorter.getField()))
+                .collect(Collectors.toList());
+        // 创建分页请求
+        PageRequest pageRequest = PageRequest.of(pagination.getCurrent() - 1, pagination.getPageSize(), Sort.by(orders));
+        // 执行查询
         Page<User> users = userRepository.findAll((root, query, cb) -> {
+            // 生成其他匹配查询
             List<Predicate> predicates = new ArrayList<>();
-            if (!CollectionUtils.isEmpty(getUsersRequest.getAccount())) {
-                predicates.add(cb.like(root.get("account"), "%" + getUsersRequest.getAccount().get(0) + "%"));
+            if (StringUtils.hasText(request.getAccount())) {
+                predicates.add(cb.like(root.get("account"), "%" + request.getAccount() + "%"));
             }
-            if (!CollectionUtils.isEmpty(getUsersRequest.getName())) {
-                predicates.add(cb.like(root.get("name"), "%" + getUsersRequest.getName().get(0) + "%"));
+            if (StringUtils.hasText(request.getName())) {
+                predicates.add(cb.like(root.get("name"), "%" + request.getName() + "%"));
             }
-            if (!CollectionUtils.isEmpty(getUsersRequest.getOrganization())) {
-                predicates.add(cb.like(root.get("organization"), "%" + getUsersRequest.getOrganization().get(0) + "%"));
+            if (StringUtils.hasText(request.getOrganization())) {
+                predicates.add(cb.like(root.get("organization"), "%" + request.getOrganization() + "%"));
             }
-            if (!CollectionUtils.isEmpty(getUsersRequest.getState())) {
-                predicates.add(cb.and(root.get("state").in(getUsersRequest.getState())));
+            if (!CollectionUtils.isEmpty(request.getState())) {
+                predicates.add(cb.and(root.get("state").in(request.getState())));
             }
-            if (!CollectionUtils.isEmpty(getUsersRequest.getType())) {
-                predicates.add(cb.and(root.get("type").in(getUsersRequest.getType())));
+            if (!CollectionUtils.isEmpty(request.getType())) {
+                predicates.add(cb.and(root.get("type").in(request.getType())));
             }
             return query.where(predicates.toArray(new Predicate[0])).getRestriction();
         }, pageRequest);

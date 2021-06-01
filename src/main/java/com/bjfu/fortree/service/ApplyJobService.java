@@ -2,8 +2,7 @@ package com.bjfu.fortree.service;
 
 import com.bjfu.fortree.pojo.dto.ApplyJobDTO;
 import com.bjfu.fortree.pojo.request.apply.ApprovalApplyJobRequest;
-import com.bjfu.fortree.pojo.request.apply.GetAllApplyJobRequest;
-import com.bjfu.fortree.pojo.request.apply.GetMyApplyJobRequest;
+import com.bjfu.fortree.pojo.request.apply.GetApplyJobsRequest;
 import org.springframework.data.domain.Page;
 
 /**
@@ -16,7 +15,7 @@ public interface ApplyJobService {
      * @param request 请求
      * @return 申请列表
      */
-    Page<ApplyJobDTO> getAllApplyJob(GetAllApplyJobRequest request);
+    Page<ApplyJobDTO> getApplyJobs(GetApplyJobsRequest request);
 
     /**
      * 获取申请详情
@@ -40,7 +39,7 @@ public interface ApplyJobService {
      * @param userAccount 用户账号
      * @return 申请列表
      */
-    Page<ApplyJobDTO> getApplyJobByApplyUser(GetMyApplyJobRequest request, String userAccount);
+    Page<ApplyJobDTO> getApplyJobsByApplyUser(GetApplyJobsRequest request, String userAccount);
 
     /**
      * 取消申请

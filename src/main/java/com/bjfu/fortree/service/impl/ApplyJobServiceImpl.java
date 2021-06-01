@@ -9,12 +9,12 @@ import com.bjfu.fortree.pojo.entity.User;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.enums.entity.ApplyJobStateEnum;
 import com.bjfu.fortree.enums.entity.UserTypeEnum;
+import com.bjfu.fortree.pojo.request.BasePageAndSorterRequest;
 import com.bjfu.fortree.repository.file.OssFileRepository;
 import com.bjfu.fortree.repository.job.ApplyJobRepository;
 import com.bjfu.fortree.repository.user.UserRepository;
 import com.bjfu.fortree.pojo.request.apply.ApprovalApplyJobRequest;
-import com.bjfu.fortree.pojo.request.apply.GetAllApplyJobRequest;
-import com.bjfu.fortree.pojo.request.apply.GetMyApplyJobRequest;
+import com.bjfu.fortree.pojo.request.apply.GetApplyJobsRequest;
 import com.bjfu.fortree.service.ApplyJobService;
 import com.bjfu.fortree.service.OssService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +24,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import javax.persistence.criteria.Predicate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author warthog
@@ -39,26 +41,43 @@ public class ApplyJobServiceImpl implements ApplyJobService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private OssFileRepository ossFileRepository;
-    @Autowired
     private OssService ossService;
     @Autowired
     private ApprovedOperationDispatch approvedOperationDispatch;
 
+
+    /**
+     * 林地实体属性顺序
+     */
+    private static final Map<String, Integer> APPLYJOB_FIELD_ORDER_WEIGHT = new HashMap<>();
+    static {
+        APPLYJOB_FIELD_ORDER_WEIGHT.put("type", 1);
+        APPLYJOB_FIELD_ORDER_WEIGHT.put("state", 2);
+        APPLYJOB_FIELD_ORDER_WEIGHT.put("createdTime", 3);
+        APPLYJOB_FIELD_ORDER_WEIGHT.put("operateTime", 4);
+
+    }
+
     @Override
-    public Page<ApplyJobDTO> getAllApplyJob(GetAllApplyJobRequest getAllApplyJobRequest) {
-        PageRequest pageRequest = PageRequest.of(getAllApplyJobRequest.getCurrent() - 1, getAllApplyJobRequest.getPageSize());
-        if(getAllApplyJobRequest.getField() != null) {
-            Sort sort = Sort.by(new Sort.Order(getAllApplyJobRequest.getOrder(), getAllApplyJobRequest.getField()));
-            pageRequest = PageRequest.of(getAllApplyJobRequest.getCurrent() - 1, getAllApplyJobRequest.getPageSize(), sort);
-        }
+    public Page<ApplyJobDTO> getApplyJobs(GetApplyJobsRequest request) {
+        BasePageAndSorterRequest.Pagination pagination = request.getPagination();
+        // 构建多属性排序
+        List<Sort.Order> orders = Optional.ofNullable(request.getSorter()).orElse(new LinkedList<>())
+                .stream()
+                .filter(singleSorter -> StringUtils.hasText(singleSorter.getField()))
+                .sorted(Comparator.comparingInt(s -> APPLYJOB_FIELD_ORDER_WEIGHT.get(s.getField())))
+                .map(singleSorter -> new Sort.Order(singleSorter.getOrder(), singleSorter.getField()))
+                .collect(Collectors.toList());
+        // 创建分页请求
+        PageRequest pageRequest = PageRequest.of(pagination.getCurrent() - 1, pagination.getPageSize(), Sort.by(orders));
+        // 执行查询
         Page<ApplyJob> applyJobs = applyJobRepository.findAll((root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            if (!CollectionUtils.isEmpty(getAllApplyJobRequest.getState())) {
-                predicates.add(cb.and(root.get("state").in(getAllApplyJobRequest.getState())));
+            if (!CollectionUtils.isEmpty(request.getState())) {
+                predicates.add(cb.and(root.get("state").in(request.getState())));
             }
-            if (!CollectionUtils.isEmpty(getAllApplyJobRequest.getType())) {
-                predicates.add(cb.and(root.get("type").in(getAllApplyJobRequest.getType())));
+            if (!CollectionUtils.isEmpty(request.getType())) {
+                predicates.add(cb.and(root.get("type").in(request.getType())));
             }
             return query.where(predicates.toArray(new Predicate[0])).getRestriction();
         }, pageRequest);
@@ -110,26 +129,30 @@ public class ApplyJobServiceImpl implements ApplyJobService {
     }
 
     @Override
-    public Page<ApplyJobDTO> getApplyJobByApplyUser(GetMyApplyJobRequest getMyApplyJobRequest, String userAccount) {
+    public Page<ApplyJobDTO> getApplyJobsByApplyUser(GetApplyJobsRequest request, String userAccount) {
         // 获取用户信息
         User user = userRepository.findByAccount(userAccount)
                 .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
-        // 构建分页与排序请求
-        PageRequest pageRequest = PageRequest.of(getMyApplyJobRequest.getCurrent() - 1, getMyApplyJobRequest.getPageSize());
-        if(getMyApplyJobRequest.getField() != null) {
-            Sort sort = Sort.by(new Sort.Order(getMyApplyJobRequest.getOrder(), getMyApplyJobRequest.getField()));
-            pageRequest = PageRequest.of(getMyApplyJobRequest.getCurrent() - 1, getMyApplyJobRequest.getPageSize(), sort);
-        }
-        // 查询
+        BasePageAndSorterRequest.Pagination pagination = request.getPagination();
+        // 构建多属性排序
+        List<Sort.Order> orders = Optional.ofNullable(request.getSorter()).orElse(new LinkedList<>())
+                .stream()
+                .filter(singleSorter -> StringUtils.hasText(singleSorter.getField()))
+                .sorted(Comparator.comparingInt(s -> APPLYJOB_FIELD_ORDER_WEIGHT.get(s.getField())))
+                .map(singleSorter -> new Sort.Order(singleSorter.getOrder(), singleSorter.getField()))
+                .collect(Collectors.toList());
+        // 创建分页请求
+        PageRequest pageRequest = PageRequest.of(pagination.getCurrent() - 1, pagination.getPageSize(), Sort.by(orders));
+        // 执行查询
         Page<ApplyJob> applyJobs = applyJobRepository.findAll((root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            if (!CollectionUtils.isEmpty(getMyApplyJobRequest.getState())) {
-                predicates.add(cb.and(root.get("state").in(getMyApplyJobRequest.getState())));
-            }
-            if (!CollectionUtils.isEmpty(getMyApplyJobRequest.getType())) {
-                predicates.add(cb.and(root.get("type").in(getMyApplyJobRequest.getType())));
-            }
             predicates.add(cb.equal(root.get("applyUser"), user));
+            if (!CollectionUtils.isEmpty(request.getState())) {
+                predicates.add(cb.and(root.get("state").in(request.getState())));
+            }
+            if (!CollectionUtils.isEmpty(request.getType())) {
+                predicates.add(cb.and(root.get("type").in(request.getType())));
+            }
             return query.where(predicates.toArray(new Predicate[0])).getRestriction();
         }, pageRequest);
         return applyJobs.map(applyJob -> new ApplyJobDTO(applyJob, false, false, false, true));

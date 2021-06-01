@@ -32,14 +32,6 @@ public class OssFileVO {
      */
     private String fileName;
     /**
-     * 文件所在oss里的bucket
-     */
-    private String ossBucketName;
-    /**
-     * 文件在oss里的object名
-     */
-    private String ossObjectName;
-    /**
      * 文件过期时间
      */
     private Date expiresTime;

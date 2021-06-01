@@ -132,7 +132,7 @@ public class WoodlandController {
 
     @RequireLogin
     @PostMapping("/getWoodlandsByCreator")
-    public BaseResult<Page<WoodlandVO>> getWoodlandsByCreator(@Validated @RequestBody GetWoodlandsByCreatorRequest request) {
+    public BaseResult<Page<WoodlandVO>> getWoodlandsByCreator(@Validated @RequestBody GetWoodlandsRequest request) {
         UserDTO userInfo = UserInfoContextUtil.getUserInfo()
                 .orElseThrow(() -> new SystemWrongException(ResultEnum.USER_INFO_CONTEXT_WRONG));
         Page<WoodlandDTO> woodlandDTOS= woodlandService.getWoodlandsByCreator(userInfo.getAccount(), request);

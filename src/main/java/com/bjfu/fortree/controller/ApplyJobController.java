@@ -5,8 +5,7 @@ import com.bjfu.fortree.pojo.dto.ApplyJobDTO;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.pojo.dto.UserDTO;
 import com.bjfu.fortree.pojo.request.apply.ApprovalApplyJobRequest;
-import com.bjfu.fortree.pojo.request.apply.GetAllApplyJobRequest;
-import com.bjfu.fortree.pojo.request.apply.GetMyApplyJobRequest;
+import com.bjfu.fortree.pojo.request.apply.GetApplyJobsRequest;
 import com.bjfu.fortree.pojo.vo.ApplyJobVO;
 import com.bjfu.fortree.security.annotation.RequireAdmin;
 import com.bjfu.fortree.security.annotation.RequireLogin;
@@ -37,9 +36,9 @@ public class ApplyJobController {
     private ApplyJobService applyJobService;
 
     @RequireAdmin
-    @PostMapping("/getAllApplyJob")
-    public BaseResult<Page<ApplyJobVO>> getAllApplyJob(@Validated @RequestBody GetAllApplyJobRequest request) {
-        Page<ApplyJobDTO> applyJobs = applyJobService.getAllApplyJob(request);
+    @PostMapping("/getApplyJobs")
+    public BaseResult<Page<ApplyJobVO>> getApplyJobs(@Validated @RequestBody GetApplyJobsRequest request) {
+        Page<ApplyJobDTO> applyJobs = applyJobService.getApplyJobs(request);
         return new BaseResult<>(ResultEnum.SUCCESS, applyJobs.map(ApplyJobVO::new));
     }
 
@@ -52,6 +51,15 @@ public class ApplyJobController {
         return new BaseResult<>(ResultEnum.SUCCESS, new ApplyJobVO(applyJobDetail));
     }
 
+    @RequireLogin
+    @PostMapping("/getMyApplyJobs")
+    public BaseResult<Page<ApplyJobVO>> getMyApplyJobs(@Validated @RequestBody GetApplyJobsRequest request) {
+        UserDTO userInfo = UserInfoContextUtil.getUserInfo()
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.USER_INFO_CONTEXT_WRONG));
+        Page<ApplyJobDTO> applyJobs = applyJobService.getApplyJobsByApplyUser(request, userInfo.getAccount());
+        return new BaseResult<>(ResultEnum.SUCCESS, applyJobs.map(ApplyJobVO::new));
+    }
+
     @RequireAdmin
     @PostMapping("/approvalApplyJob")
     public BaseResult<ApplyJobVO> approvalApplyJob(@Validated @RequestBody ApprovalApplyJobRequest request) {
@@ -59,15 +67,6 @@ public class ApplyJobController {
                 .orElseThrow(() -> new SystemWrongException(ResultEnum.USER_INFO_CONTEXT_WRONG));
         ApplyJobDTO applyJobDTO = applyJobService.approvalApplyJob(request, userInfo.getAccount());
         return new BaseResult<>(ResultEnum.SUCCESS, new ApplyJobVO(applyJobDTO));
-    }
-
-    @RequireLogin
-    @PostMapping("/getMyApplyJob")
-    public BaseResult<Page<ApplyJobVO>> getMyApplyJob(@Validated @RequestBody GetMyApplyJobRequest request) {
-        UserDTO userInfo = UserInfoContextUtil.getUserInfo()
-                .orElseThrow(() -> new SystemWrongException(ResultEnum.USER_INFO_CONTEXT_WRONG));
-        Page<ApplyJobDTO> applyJobs = applyJobService.getApplyJobByApplyUser(request, userInfo.getAccount());
-        return new BaseResult<>(ResultEnum.SUCCESS, applyJobs.map(ApplyJobVO::new));
     }
 
     @RequireLogin

@@ -105,7 +105,7 @@ public interface WoodlandService {
      * @param request 请求
      * @return 分页后的林地实体列表
      */
-    Page<WoodlandDTO> getWoodlandsByCreator(String userAccount, GetWoodlandsByCreatorRequest request);
+    Page<WoodlandDTO> getWoodlandsByCreator(String userAccount, GetWoodlandsRequest request);
 
     /**
      * 获取林地详细信息

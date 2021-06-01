@@ -17,6 +17,7 @@ import com.bjfu.fortree.enums.entity.ApplyJobTypeEnum;
 import com.bjfu.fortree.enums.entity.AuthorityTypeEnum;
 import com.bjfu.fortree.exception.SystemWrongException;
 import com.bjfu.fortree.exception.WrongParamException;
+import com.bjfu.fortree.pojo.request.BasePageAndSorterRequest;
 import com.bjfu.fortree.repository.file.OssFileRepository;
 import com.bjfu.fortree.repository.job.ApplyJobRepository;
 import com.bjfu.fortree.repository.user.AuthorityRepository;
@@ -34,6 +35,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import javax.persistence.criteria.Predicate;
 import java.io.IOException;
@@ -359,26 +361,44 @@ public class WoodlandServiceImpl implements WoodlandService {
         }
     }
 
+    /**
+     * 林地实体属性顺序
+     */
+    private static final Map<String, Integer> WOODLAND_FIELD_ORDER_WEIGHT = new HashMap<>();
+    static {
+        WOODLAND_FIELD_ORDER_WEIGHT.put("name", 1);
+        WOODLAND_FIELD_ORDER_WEIGHT.put("country", 2);
+        WOODLAND_FIELD_ORDER_WEIGHT.put("province", 3);
+        WOODLAND_FIELD_ORDER_WEIGHT.put("city", 4);
+
+    }
+
     @Override
-    public Page<WoodlandDTO> getWoodlands(GetWoodlandsRequest getWoodlandsRequest) {
-        PageRequest pageRequest = PageRequest.of(getWoodlandsRequest.getCurrent() - 1, getWoodlandsRequest.getPageSize());
-        if(getWoodlandsRequest.getField() != null) {
-            Sort sort = Sort.by(new Sort.Order(getWoodlandsRequest.getOrder(), getWoodlandsRequest.getField()));
-            pageRequest = PageRequest.of(getWoodlandsRequest.getCurrent() - 1, getWoodlandsRequest.getPageSize(), sort);
-        }
+    public Page<WoodlandDTO> getWoodlands(GetWoodlandsRequest request) {
+        BasePageAndSorterRequest.Pagination pagination = request.getPagination();
+        // 构建多属性排序
+        List<Sort.Order> orders = Optional.ofNullable(request.getSorter()).orElse(new LinkedList<>())
+                .stream()
+                .filter(singleSorter -> StringUtils.hasText(singleSorter.getField()))
+                .sorted(Comparator.comparingInt(s -> WOODLAND_FIELD_ORDER_WEIGHT.get(s.getField())))
+                .map(singleSorter -> new Sort.Order(singleSorter.getOrder(), singleSorter.getField()))
+                .collect(Collectors.toList());
+        // 创建分页请求
+        PageRequest pageRequest = PageRequest.of(pagination.getCurrent() - 1, pagination.getPageSize(), Sort.by(orders));
+        // 执行查询
         Page<Woodland> woodlands = woodlandRepository.findAll((root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            if (!CollectionUtils.isEmpty(getWoodlandsRequest.getName())) {
-                predicates.add(cb.like(root.get("name"), "%" + getWoodlandsRequest.getName().get(0) + "%"));
+            if (StringUtils.hasText(request.getName())) {
+                predicates.add(cb.like(root.get("name"), "%" + request.getName() + "%"));
             }
-            if (!CollectionUtils.isEmpty(getWoodlandsRequest.getCountry())) {
-                predicates.add(cb.like(root.get("country"), "%" + getWoodlandsRequest.getCountry().get(0) + "%"));
+            if (StringUtils.hasText(request.getCountry())) {
+                predicates.add(cb.like(root.get("country"), "%" + request.getCountry() + "%"));
             }
-            if (!CollectionUtils.isEmpty(getWoodlandsRequest.getProvince())) {
-                predicates.add(cb.like(root.get("province"), "%" + getWoodlandsRequest.getProvince().get(0) + "%"));
+            if (StringUtils.hasText(request.getProvince())) {
+                predicates.add(cb.like(root.get("province"), "%" + request.getProvince() + "%"));
             }
-            if (!CollectionUtils.isEmpty(getWoodlandsRequest.getCity())) {
-                predicates.add(cb.like(root.get("city"), "%" + getWoodlandsRequest.getCity().get(0) + "%"));
+            if (StringUtils.hasText(request.getCity())) {
+                predicates.add(cb.like(root.get("city"), "%" + request.getCity() + "%"));
             }
             return query.where(predicates.toArray(new Predicate[0])).getRestriction();
         }, pageRequest);
@@ -394,29 +414,35 @@ public class WoodlandServiceImpl implements WoodlandService {
     }
 
     @Override
-    public Page<WoodlandDTO> getWoodlandsByCreator(String userAccount, GetWoodlandsByCreatorRequest getWoodlandsByCreatorRequest) {
+    public Page<WoodlandDTO> getWoodlandsByCreator(String userAccount, GetWoodlandsRequest request) {
         // 查找用户
         User user = userRepository.findByAccount(userAccount)
                 .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
-        PageRequest pageRequest = PageRequest.of(getWoodlandsByCreatorRequest.getCurrent() - 1, getWoodlandsByCreatorRequest.getPageSize());
-        if(getWoodlandsByCreatorRequest.getField() != null) {
-            Sort sort = Sort.by(new Sort.Order(getWoodlandsByCreatorRequest.getOrder(), getWoodlandsByCreatorRequest.getField()));
-            pageRequest = PageRequest.of(getWoodlandsByCreatorRequest.getCurrent() - 1, getWoodlandsByCreatorRequest.getPageSize(), sort);
-        }
+        BasePageAndSorterRequest.Pagination pagination = request.getPagination();
+        // 构建多属性排序
+        List<Sort.Order> orders = Optional.ofNullable(request.getSorter()).orElse(new LinkedList<>())
+                .stream()
+                .filter(singleSorter -> StringUtils.hasText(singleSorter.getField()))
+                .sorted(Comparator.comparingInt(s -> WOODLAND_FIELD_ORDER_WEIGHT.get(s.getField())))
+                .map(singleSorter -> new Sort.Order(singleSorter.getOrder(), singleSorter.getField()))
+                .collect(Collectors.toList());
+        // 创建分页请求
+        PageRequest pageRequest = PageRequest.of(pagination.getCurrent() - 1, pagination.getPageSize(), Sort.by(orders));
+        // 执行查询
         Page<Woodland> woodlands = woodlandRepository.findAll((root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.equal(root.get("creator"), user));
-            if (!CollectionUtils.isEmpty(getWoodlandsByCreatorRequest.getName())) {
-                predicates.add(cb.like(root.get("name"), "%" + getWoodlandsByCreatorRequest.getName().get(0) + "%"));
+            if (StringUtils.hasText(request.getName())) {
+                predicates.add(cb.like(root.get("name"), "%" + request.getName() + "%"));
             }
-            if (!CollectionUtils.isEmpty(getWoodlandsByCreatorRequest.getCountry())) {
-                predicates.add(cb.like(root.get("country"), "%" + getWoodlandsByCreatorRequest.getCountry().get(0) + "%"));
+            if (StringUtils.hasText(request.getCountry())) {
+                predicates.add(cb.like(root.get("country"), "%" + request.getCountry() + "%"));
             }
-            if (!CollectionUtils.isEmpty(getWoodlandsByCreatorRequest.getProvince())) {
-                predicates.add(cb.like(root.get("province"), "%" + getWoodlandsByCreatorRequest.getProvince().get(0) + "%"));
+            if (StringUtils.hasText(request.getProvince())) {
+                predicates.add(cb.like(root.get("province"), "%" + request.getProvince() + "%"));
             }
-            if (!CollectionUtils.isEmpty(getWoodlandsByCreatorRequest.getCity())) {
-                predicates.add(cb.like(root.get("city"), "%" + getWoodlandsByCreatorRequest.getCity().get(0) + "%"));
+            if (StringUtils.hasText(request.getCity())) {
+                predicates.add(cb.like(root.get("city"), "%" + request.getCity() + "%"));
             }
             return query.where(predicates.toArray(new Predicate[0])).getRestriction();
         }, pageRequest);
@@ -430,27 +456,43 @@ public class WoodlandServiceImpl implements WoodlandService {
         return new WoodlandDTO(woodland, true, true);
     }
 
+    /**
+     * 树木实体属性顺序
+     */
+    private static final Map<String, Integer> TREE_FIELD_ORDER_WEIGHT = new HashMap<>();
+    static {
+        TREE_FIELD_ORDER_WEIGHT.put("treeId", 1);
+        TREE_FIELD_ORDER_WEIGHT.put("species", 2);
+        TREE_FIELD_ORDER_WEIGHT.put("height", 3);
+        TREE_FIELD_ORDER_WEIGHT.put("dbh", 4);
+        TREE_FIELD_ORDER_WEIGHT.put("crownWidth", 5);
+    }
+
     @Override
-    public Page<TreeDTO> getTrees(GetTreesRequest getTreesRequest) {
-        Optional<Record> recordOptional = recordRepository.findById(getTreesRequest.getRecordId());
-        if(recordOptional.isEmpty()) {
-            throw new WrongParamException(ResultEnum.RECORD_NOT_EXIST);
-        }
-        Record record = recordOptional.get();
-        PageRequest pageRequest = PageRequest.of(getTreesRequest.getCurrent() - 1, getTreesRequest.getPageSize());
-        if(getTreesRequest.getField() != null) {
-            Sort sort = Sort.by(new Sort.Order(getTreesRequest.getOrder(), getTreesRequest.getField()));
-            pageRequest = PageRequest.of(getTreesRequest.getCurrent() - 1, getTreesRequest.getPageSize(), sort);
-        }
+    public Page<TreeDTO> getTrees(GetTreesRequest request) {
+        // 获取记录信息
+        Record record = recordRepository.findById(request.getRecordId())
+                .orElseThrow(() -> new WrongParamException(ResultEnum.RECORD_NOT_EXIST));
+        BasePageAndSorterRequest.Pagination pagination = request.getPagination();
+        // 构建多属性排序
+        List<Sort.Order> orders = Optional.ofNullable(request.getSorter()).orElse(new LinkedList<>())
+                .stream()
+                .filter(singleSorter -> StringUtils.hasText(singleSorter.getField()))
+                .sorted(Comparator.comparingInt(s -> TREE_FIELD_ORDER_WEIGHT.get(s.getField())))
+                .map(singleSorter -> new Sort.Order(singleSorter.getOrder(), singleSorter.getField()))
+                .collect(Collectors.toList());
+        // 创建分页请求
+        PageRequest pageRequest = PageRequest.of(pagination.getCurrent() - 1, pagination.getPageSize(), Sort.by(orders));
+        // 执行查询
         Page<Tree> trees = treeRepository.findAll((root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            if (!CollectionUtils.isEmpty(getTreesRequest.getTreeId())) {
-                predicates.add(cb.like(root.get("treeId"), "%" + getTreesRequest.getTreeId().get(0) + "%"));
-            }
-            if (!CollectionUtils.isEmpty(getTreesRequest.getSpecies())) {
-                predicates.add(cb.like(root.get("species"), "%" + getTreesRequest.getSpecies().get(0) + "%"));
-            }
             predicates.add(cb.equal(root.get("record"), record));
+            if (StringUtils.hasText(request.getTreeId())) {
+                predicates.add(cb.like(root.get("treeId"), "%" + request.getTreeId() + "%"));
+            }
+            if (StringUtils.hasText(request.getSpecies())) {
+                predicates.add(cb.like(root.get("species"), "%" + request.getSpecies() + "%"));
+            }
             return query.where(predicates.toArray(new Predicate[0])).getRestriction();
         }, pageRequest);
         return trees.map(tree -> new TreeDTO(tree, false));

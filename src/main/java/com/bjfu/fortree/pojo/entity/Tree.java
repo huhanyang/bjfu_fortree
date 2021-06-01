@@ -27,7 +27,7 @@ public class Tree extends BaseEntity {
     /**
      * 树的编号
      */
-    @Column(length=32, nullable=false)
+    @Column(length=32)
     private String treeId;
     /**
      * 树种

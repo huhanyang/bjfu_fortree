@@ -2,9 +2,12 @@ package com.bjfu.fortree.pojo.request.user;
 
 import com.bjfu.fortree.enums.entity.UserStateEnum;
 import com.bjfu.fortree.enums.entity.UserTypeEnum;
+import com.bjfu.fortree.pojo.request.BasePageAndSorterRequest;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.data.domain.Sort;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -13,19 +16,31 @@ import java.util.List;
  * @author warthog
  */
 @Data
-public class GetUsersRequest {
-    //分页
-    @NotNull(message = "分页当前页数不能为空")
-    private Integer current;
-    @NotNull(message = "分页每页的数量不能为空")
-    private Integer pageSize;
-    //过滤
-    private List<String> account;
-    private List<String> name;
-    private List<String> organization;
+@EqualsAndHashCode(callSuper = true)
+public class GetUsersRequest extends BasePageAndSorterRequest {
+    /**
+     * 按照账号模糊搜素
+     */
+    @Nullable
+    private String account;
+    /**
+     * 按照姓名模糊搜素
+     */
+    @Nullable
+    private String name;
+    /**
+     * 按照组织模糊搜素
+     */
+    @Nullable
+    private String organization;
+    /**
+     * 按照状态匹配
+     */
+    @Nullable
     private List<UserStateEnum> state;
+    /**
+     * 按照类型匹配
+     */
+    @Nullable
     private List<UserTypeEnum> type;
-    //排序
-    private String field;
-    private Sort.Direction order;
 }
