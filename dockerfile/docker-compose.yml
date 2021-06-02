@@ -1,0 +1,65 @@
+version: "3"
+
+services:
+
+  minio:
+    image: minio/minio
+    networks:
+      frontend:
+          aliases:
+            - frontend.minio
+      backend:
+          aliases:
+            - backend.minio
+    volumes:
+      - minio-data:/data
+    command: ["server", "/data"]
+
+  mysql:
+    image: mysql:8
+    networks:
+      backend:
+        aliases:
+          - backend.mysql
+    volumes:
+      - mysql-data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=my-secret-pw
+      - MYSQL_DATABASE=fortree
+
+  back_app:
+    build:
+      context: ./back
+      dockerfile: Dockerfile
+    networks:
+      frontend:
+        aliases:
+          - frontend.backapp
+      backend:
+        aliases:
+          - backend.backapp
+    depends_on:
+      - minio
+      - mysql
+
+  front_app:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    networks:
+      frontend:
+        aliases:
+          - frontend.frontapp
+    ports:
+      - "80:80"
+    depends_on:
+      - back_app
+      - minio
+
+networks:
+  frontend:
+  backend:
+
+volumes:
+  mysql-data:
+  minio-data:
