@@ -25,6 +25,7 @@ services:
       - mysql-data:/var/lib/mysql
     environment:
       - MYSQL_DATABASE=fortree
+      - MYSQL_ROOT_PASSWORD=my-secret-pw
 
   back_app:
     build:
