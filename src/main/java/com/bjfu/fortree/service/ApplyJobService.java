@@ -1,6 +1,7 @@
 package com.bjfu.fortree.service;
 
 import com.bjfu.fortree.pojo.dto.ApplyJobDTO;
+import com.bjfu.fortree.pojo.dto.OssFileDTO;
 import com.bjfu.fortree.pojo.request.apply.ApprovalApplyJobRequest;
 import com.bjfu.fortree.pojo.request.apply.GetApplyJobsRequest;
 import org.springframework.data.domain.Page;
@@ -56,5 +57,5 @@ public interface ApplyJobService {
      * @param userAccount 操作者用户账号
      * @return 申请实体
      */
-    String getApplyJobDownloadFileUrl(Long applyJobId, Boolean isUploadFile, String userAccount);
+    OssFileDTO getApplyJobDownloadFileInfo(Long applyJobId, Boolean isUploadFile, String userAccount);
 }

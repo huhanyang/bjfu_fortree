@@ -3,6 +3,7 @@ package com.bjfu.fortree.service.impl;
 import com.bjfu.fortree.approval.ApprovedOperationDispatch;
 import com.bjfu.fortree.exception.*;
 import com.bjfu.fortree.pojo.dto.ApplyJobDTO;
+import com.bjfu.fortree.pojo.dto.OssFileDTO;
 import com.bjfu.fortree.pojo.entity.ApplyJob;
 import com.bjfu.fortree.pojo.entity.OssFile;
 import com.bjfu.fortree.pojo.entity.User;
@@ -81,7 +82,7 @@ public class ApplyJobServiceImpl implements ApplyJobService {
             }
             return query.where(predicates.toArray(new Predicate[0])).getRestriction();
         }, pageRequest);
-        return applyJobs.map(applyJob -> new ApplyJobDTO(applyJob, true, false, true, false));
+        return applyJobs.map(applyJob -> new ApplyJobDTO(applyJob, true, false, true, true));
     }
 
     @Override
@@ -187,7 +188,7 @@ public class ApplyJobServiceImpl implements ApplyJobService {
 
     @Override
     @Transactional
-    public String getApplyJobDownloadFileUrl(Long applyJobId, Boolean isUploadFile, String userAccount) {
+    public OssFileDTO getApplyJobDownloadFileInfo(Long applyJobId, Boolean isUploadFile, String userAccount) {
         // 获取用户信息
         User user = userRepository.findByAccount(userAccount)
                 .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
@@ -205,6 +206,9 @@ public class ApplyJobServiceImpl implements ApplyJobService {
                 .filter(date -> date.getTime() > System.currentTimeMillis())
                 .orElseThrow(() -> new BizException(ResultEnum.FILE_NOT_EXIST_OR_EXPIRES));
         // 获取文件下载url
-        return ossService.preSignedGetObject(file.getOssBucketName(), file.getOssObjectName());
+        String url = ossService.preSignedGetObject(file.getOssBucketName(), file.getOssObjectName());
+        OssFileDTO ossFileDTO = new OssFileDTO(file);
+        ossFileDTO.setUrl(url);
+        return ossFileDTO;
     }
 }

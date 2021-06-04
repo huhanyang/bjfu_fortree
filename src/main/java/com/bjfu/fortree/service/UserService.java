@@ -32,6 +32,13 @@ public interface UserService {
     UserDTO getInfo(String userAccount);
 
     /**
+     * 为上下文获取用户信息
+     * @param userAccount 账号
+     * @return 用户信息
+     */
+    UserDTO getInfoForContext(String userAccount);
+
+    /**
      * 修改密码
      * @param userAccount 用户账号
      * @param request 更改密码请求

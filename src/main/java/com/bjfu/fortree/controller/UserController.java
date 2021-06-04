@@ -56,10 +56,17 @@ public class UserController {
         return new BaseResult<>(ResultEnum.SUCCESS);
     }
 
-    @RequireAdmin
+    @RequireLogin
     @GetMapping("/getUserInfo")
     public BaseResult<UserVO> getUserInfo(@NotNull(message = "用户账号不能为空") String account) {
         UserDTO userDTO = userService.getInfo(account);
+        String operatorAccount = UserInfoContextUtil.getUserInfo().map(UserDTO::getAccount)
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.USER_INFO_CONTEXT_WRONG));
+        if(account.equals(operatorAccount)) {
+            // 生成Token
+            String token = JwtUtil.generateToken(Collections.singletonMap("userAccount", userDTO.getAccount()));
+            return new BaseResult<>(ResultEnum.SUCCESS, new UserVO(userDTO, token));
+        }
         return new BaseResult<>(ResultEnum.SUCCESS, new UserVO(userDTO));
     }
 
@@ -69,7 +76,9 @@ public class UserController {
         UserDTO userInfo = UserInfoContextUtil.getUserInfo()
                 .orElseThrow(() -> new SystemWrongException(ResultEnum.USER_INFO_CONTEXT_WRONG));
         UserDTO userDTO = userService.getInfo(userInfo.getAccount());
-        return new BaseResult<>(ResultEnum.SUCCESS, new UserVO(userDTO));
+        // 生成Token
+        String token = JwtUtil.generateToken(Collections.singletonMap("userAccount", userDTO.getAccount()));
+        return new BaseResult<>(ResultEnum.SUCCESS, new UserVO(userDTO, token));
     }
 
     @RequireAdmin

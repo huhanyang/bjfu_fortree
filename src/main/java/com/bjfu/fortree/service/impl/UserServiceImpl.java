@@ -16,6 +16,7 @@ import com.bjfu.fortree.repository.user.UserRepository;
 import com.bjfu.fortree.pojo.request.user.*;
 import com.bjfu.fortree.service.UserService;
 import com.bjfu.fortree.util.EncryptionUtil;
+import com.bjfu.fortree.util.UserInfoContextUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
@@ -53,7 +54,7 @@ public class UserServiceImpl implements UserService {
             throw new BizException(ResultEnum.ACCOUNT_BANNED);
         }
         // 返回用户信息
-        return new UserDTO(user, true, true, true, true);
+        return new UserDTO(user, false, false, false, false);
     }
 
     @Override
@@ -68,6 +69,7 @@ public class UserServiceImpl implements UserService {
         user.setType(UserTypeEnum.USER);
         user.setState(UserStateEnum.ACTIVE);
         BeanUtils.copyProperties(request, user);
+        user.setPassword(EncryptionUtil.md5Encode(request.getPassword()));
         // 落库
         userRepository.save(user);
         // 返回用户信息
@@ -75,10 +77,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserDTO getInfo(String userAccount) {
+        // 只有管理员可以获取其他用户的信息
+        UserDTO userInfo = UserInfoContextUtil.getUserInfo()
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.USER_INFO_CONTEXT_WRONG));
+        if(!userInfo.getAccount().equals(userAccount) && !userInfo.getType().equals(UserTypeEnum.ADMIN)) {
+            throw new BizException(ResultEnum.REQUIRE_ADMIN);
+        }
         User user = userRepository.findByAccount(userAccount)
                 .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
-        return new UserDTO(user, true, true, true, true);
+        return new UserDTO(user, true, true, true, false);
+    }
+
+    @Override
+    public UserDTO getInfoForContext(String userAccount) {
+        User user = userRepository.findByAccount(userAccount)
+                .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
+        return new UserDTO(user, false, false, false, false);
     }
 
     @Override
@@ -142,6 +158,7 @@ public class UserServiceImpl implements UserService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
         // 删除存在的权限列表
+        user.getAuthorities().removeAll(needDeleteAuthorities);
         authorityRepository.deleteAll(needDeleteAuthorities);
     }
 
@@ -155,6 +172,8 @@ public class UserServiceImpl implements UserService {
         USER_FIELD_ORDER_WEIGHT.put("state", 3);
         USER_FIELD_ORDER_WEIGHT.put("name", 4);
         USER_FIELD_ORDER_WEIGHT.put("organization", 5);
+        USER_FIELD_ORDER_WEIGHT.put("createdTime", 6);
+
 
     }
 

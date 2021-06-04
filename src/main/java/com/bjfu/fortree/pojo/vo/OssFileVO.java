@@ -35,4 +35,8 @@ public class OssFileVO {
      * 文件过期时间
      */
     private Date expiresTime;
+    /**
+     * 文件下载URL
+     */
+    private String url;
 }

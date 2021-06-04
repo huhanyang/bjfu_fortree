@@ -34,6 +34,7 @@ public class EditWoodlandOperation implements ApprovedOperation {
         }
         Woodland woodland = woodlandOptional.get();
         BeanUtils.copyProperties(editWoodlandRequest, woodland);
+        woodland.setPosition(editWoodlandRequest.getPosition().convertToGeom());
         woodlandRepository.save(woodland);
     }
 }

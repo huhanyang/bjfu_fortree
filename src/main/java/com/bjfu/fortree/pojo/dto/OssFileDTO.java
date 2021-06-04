@@ -10,7 +10,9 @@ import java.util.Date;
 public class OssFileDTO {
 
     public OssFileDTO(OssFile ossFile) {
-        BeanUtils.copyProperties(ossFile, this);
+        if(ossFile!=null) {
+            BeanUtils.copyProperties(ossFile, this);
+        }
     }
     /**
      * 主键
@@ -41,4 +43,8 @@ public class OssFileDTO {
      * 文件过期时间
      */
     private Date expiresTime;
+    /**
+     * 文件下载URL
+     */
+    private String url;
 }

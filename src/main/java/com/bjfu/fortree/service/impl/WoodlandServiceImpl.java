@@ -370,6 +370,10 @@ public class WoodlandServiceImpl implements WoodlandService {
         WOODLAND_FIELD_ORDER_WEIGHT.put("country", 2);
         WOODLAND_FIELD_ORDER_WEIGHT.put("province", 3);
         WOODLAND_FIELD_ORDER_WEIGHT.put("city", 4);
+        WOODLAND_FIELD_ORDER_WEIGHT.put("shape", 5);
+        WOODLAND_FIELD_ORDER_WEIGHT.put("length", 6);
+        WOODLAND_FIELD_ORDER_WEIGHT.put("width", 7);
+        WOODLAND_FIELD_ORDER_WEIGHT.put("createdTime", 8);
 
     }
 
@@ -450,6 +454,7 @@ public class WoodlandServiceImpl implements WoodlandService {
     }
 
     @Override
+    @Transactional
     public WoodlandDTO getWoodlandDetail(Long woodlandId) {
         Woodland woodland = woodlandRepository.findById(woodlandId)
                 .orElseThrow(() -> new WrongParamException(ResultEnum.WOODLAND_NOT_EXIST));

@@ -1,12 +1,16 @@
 package com.bjfu.fortree.controller;
 
+import com.bjfu.fortree.enums.entity.ApplyJobStateEnum;
 import com.bjfu.fortree.exception.SystemWrongException;
+import com.bjfu.fortree.exception.WrongParamException;
 import com.bjfu.fortree.pojo.dto.ApplyJobDTO;
 import com.bjfu.fortree.enums.ResultEnum;
+import com.bjfu.fortree.pojo.dto.OssFileDTO;
 import com.bjfu.fortree.pojo.dto.UserDTO;
 import com.bjfu.fortree.pojo.request.apply.ApprovalApplyJobRequest;
 import com.bjfu.fortree.pojo.request.apply.GetApplyJobsRequest;
 import com.bjfu.fortree.pojo.vo.ApplyJobVO;
+import com.bjfu.fortree.pojo.vo.OssFileVO;
 import com.bjfu.fortree.security.annotation.RequireAdmin;
 import com.bjfu.fortree.security.annotation.RequireLogin;
 import com.bjfu.fortree.service.ApplyJobService;
@@ -63,6 +67,10 @@ public class ApplyJobController {
     @RequireAdmin
     @PostMapping("/approvalApplyJob")
     public BaseResult<ApplyJobVO> approvalApplyJob(@Validated @RequestBody ApprovalApplyJobRequest request) {
+        // 参数校验
+        if(!request.getState().equals(ApplyJobStateEnum.PASSED) && !request.getState().equals(ApplyJobStateEnum.NOT_PASSED)) {
+            throw new WrongParamException(ResultEnum.PARAM_WRONG);
+        }
         UserDTO userInfo = UserInfoContextUtil.getUserInfo()
                 .orElseThrow(() -> new SystemWrongException(ResultEnum.USER_INFO_CONTEXT_WRONG));
         ApplyJobDTO applyJobDTO = applyJobService.approvalApplyJob(request, userInfo.getAccount());
@@ -79,13 +87,13 @@ public class ApplyJobController {
     }
 
     @RequireLogin
-    @GetMapping("/getApplyJobDownloadFileUrl")
-    public BaseResult<String> getApplyJobDownloadFileUrl(@NotNull(message = "申请id不能为空!") Long id,
-                                                         @NotNull(message = "是否为上传文件不能为空") Boolean isUploadFile) {
+    @GetMapping("/getApplyJobDownloadFileInfo")
+    public BaseResult<OssFileVO> getApplyJobDownloadFileInfo(@NotNull(message = "申请id不能为空!") Long id,
+                                                             @NotNull(message = "是否为上传文件不能为空") Boolean isUploadFile) {
         UserDTO userInfo = UserInfoContextUtil.getUserInfo()
                 .orElseThrow(() -> new SystemWrongException(ResultEnum.USER_INFO_CONTEXT_WRONG));
-        String fileDownloadUrl = applyJobService.getApplyJobDownloadFileUrl(id, isUploadFile, userInfo.getAccount());
-        return new BaseResult<>(ResultEnum.SUCCESS, fileDownloadUrl);
+        OssFileDTO ossFileDTO = applyJobService.getApplyJobDownloadFileInfo(id, isUploadFile, userInfo.getAccount());
+        return new BaseResult<>(ResultEnum.SUCCESS, new OssFileVO(ossFileDTO));
     }
 
 }

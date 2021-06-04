@@ -25,7 +25,7 @@ public class WoodlandDTO {
                 this.setCreator(new UserDTO(woodland.getCreator(), false, false, false, false));
             }
             if(needRecords) {
-                this.setRecords(woodland.getRecords().stream().map(record -> new RecordDTO(record, false, true, true)).collect(Collectors.toList()));
+                this.setRecords(woodland.getRecords().stream().map(record -> new RecordDTO(record, false, true, false)).collect(Collectors.toList()));
             }
         }
     }

@@ -45,12 +45,15 @@ public class JwtInterceptor implements HandlerInterceptor {
             boolean requireUser = handlerMethod.getMethodAnnotation(RequireUser.class) != null;
             boolean requireAdmin = handlerMethod.getMethodAnnotation(RequireAdmin.class) != null;
             requireLogin = requireLogin || requireUser || requireAdmin;
-            // 尝试获取用户登录信息
-            UserDTO userInfo = Optional.ofNullable(request.getHeader("Authorization"))
-                    .map(token -> token.substring(7)) // 前缀"Bearer "清除
+            // 尝试从header中取token 取不到就从http参数中取
+            String token = Optional.ofNullable(request.getHeader("Authorization"))
+                    .map(tokenInHeader -> tokenInHeader.substring(7)) // 前缀"Bearer "清除
+                    .orElse(request.getParameter("token"));
+            // 验证token并获取用户信息
+            UserDTO userInfo = Optional.ofNullable(token)
                     .map(JwtUtil::verifyToken)
                     .map(claimMap -> claimMap.get("userAccount").asString())
-                    .map(account -> userService.getInfo(account))
+                    .map(account -> userService.getInfoForContext(account))
                     .orElse(null);
             // 需要登录则检查是否登录以及是否被封号
             if(requireLogin) {

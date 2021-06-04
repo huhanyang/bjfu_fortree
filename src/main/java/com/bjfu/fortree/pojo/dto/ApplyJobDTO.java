@@ -7,6 +7,7 @@ import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
 import java.util.Date;
+import java.util.Optional;
 
 @Data
 public class ApplyJobDTO {
@@ -18,10 +19,10 @@ public class ApplyJobDTO {
                 this.applyUser = new UserDTO(applyJob.getApplyUser(), false, false, false, false);
             }
             if(needUploadFile) {
-                this.uploadFile = new OssFileDTO(applyJob.getUploadFile());
+                this.uploadFile = Optional.ofNullable(applyJob.getUploadFile()).map(OssFileDTO::new).orElse(null);
             }
             if(needDownloadFile) {
-                this.downloadFile = new OssFileDTO(applyJob.getDownloadFile());
+                this.downloadFile = Optional.ofNullable(applyJob.getDownloadFile()).map(OssFileDTO::new).orElse(null);
             }
             if(needOperateUser) {
                 this.operateUser = new UserDTO(applyJob.getOperateUser(), false, false, false, false);

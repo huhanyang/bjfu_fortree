@@ -21,7 +21,4 @@ public class LoginCheckRequest {
     @Length(min = 8, max = 32, message = "密码长度在8-32位!")
     private String password;
 
-    @NotNull(message = "记住我不能为空!")
-    private Boolean remember;
-
 }
