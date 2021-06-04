@@ -1,10 +1,10 @@
 #构建编译环境
-FROM node:15.3
-RUN npm config set registry https://registry.npm.taobao.org \
+FROM node:16
+RUN yarn config set registry https://registry.npm.taobao.org \
     && git clone https://gitee.com/tank59he/bjfu_fortree_front.git /usr/src/bjfu_fortree \
     && cd /usr/src/bjfu_fortree \
-    && npm install \
-    && npm run build
+    && yarn install \
+    && yarn run build
 
 
 FROM nginx:1.19
