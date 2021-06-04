@@ -1,5 +1,6 @@
 package com.bjfu.fortree.security.interceptor;
 
+import com.auth0.jwt.interfaces.Claim;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.enums.entity.UserStateEnum;
 import com.bjfu.fortree.enums.entity.UserTypeEnum;
@@ -53,7 +54,8 @@ public class JwtInterceptor implements HandlerInterceptor {
             // 验证token并获取用户信息
             UserDTO userInfo = Optional.ofNullable(token)
                     .map(JwtUtil::verifyToken)
-                    .map(claimMap -> claimMap.get("userAccount").asString())
+                    .map(claimMap -> claimMap.get("userAccount"))
+                    .map(Claim::asString)
                     .map(account -> userService.getInfoForContext(account))
                     .orElse(null);
             // 需要登录则检查是否登录以及是否被封号
