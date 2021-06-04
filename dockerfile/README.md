@@ -50,7 +50,7 @@ docker build --no-cache=true -t bjfu_fortree_develop:latest .
 
 Nginx代理`docker run -itd --name bjfu_fortree_develop -p 80:80 bjfu_fortree_develop`
 
-Mysql8`docker run -p 3306:3306 -d --name mysql8 -e MYSQL_DATABASE=fortree  mysql:8`
+Mysql8`docker run -p 3306:3306 -d --name mysql8 -e MYSQL_DATABASE=fortree -e MYSQL_ROOT_PASSWORD=my-secret-pw  mysql:8`
 
 Minio服务器`docker run -p 9000:9000 minio/minio server /data`
 

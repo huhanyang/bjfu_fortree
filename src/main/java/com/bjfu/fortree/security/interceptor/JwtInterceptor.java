@@ -47,6 +47,7 @@ public class JwtInterceptor implements HandlerInterceptor {
             requireLogin = requireLogin || requireUser || requireAdmin;
             // 尝试从header中取token 取不到就从http参数中取
             String token = Optional.ofNullable(request.getHeader("Authorization"))
+                    .filter(tokenInHeader -> tokenInHeader.length()>7)
                     .map(tokenInHeader -> tokenInHeader.substring(7)) // 前缀"Bearer "清除
                     .orElse(request.getParameter("token"));
             // 验证token并获取用户信息
