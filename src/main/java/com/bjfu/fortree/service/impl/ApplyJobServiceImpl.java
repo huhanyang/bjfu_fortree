@@ -201,10 +201,14 @@ public class ApplyJobServiceImpl implements ApplyJobService {
         }
         // 获取申请中的文件
         OssFile file = isUploadFile? applyJob.getUploadFile() : applyJob.getDownloadFile();
-        Optional.ofNullable(file)
-                .map(OssFile::getExpiresTime)
-                .filter(date -> date.getTime() > System.currentTimeMillis())
-                .orElseThrow(() -> new BizException(ResultEnum.FILE_NOT_EXIST_OR_EXPIRES));
+        if(file != null) {
+            Date expiresTime = file.getExpiresTime();
+            if(expiresTime!=null && expiresTime.before(new Date())) {
+                throw new BizException(ResultEnum.FILE_NOT_EXIST_OR_EXPIRES);
+            }
+        } else {
+            throw new BizException(ResultEnum.FILE_NOT_EXIST_OR_EXPIRES);
+        }
         // 获取文件下载url
         String url = ossService.preSignedGetObject(file.getOssBucketName(), file.getOssObjectName());
         OssFileDTO ossFileDTO = new OssFileDTO(file);
