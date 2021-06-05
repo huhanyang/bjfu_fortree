@@ -6,7 +6,7 @@ RUN apt-get update \
     && apt-get install -y maven \
     && apt-get install -y git
 COPY settings.xml /usr/share/maven/conf/settings.xml
-RUN git clone https://gitee.com/tank59he/bjfu_fortree.git /usr/src/bjfu_fortree/ \
+RUN git clone https://github.com/tank59he/bjfu_fortree.git /usr/src/bjfu_fortree/ \
     && cd /usr/src/bjfu_fortree/ \
     && mvn clean package -Pprod -U -Dmaven.test.skip=true \
     && mv /usr/src/bjfu_fortree/target/bjfu_fortree.jar /usr/src/ \
