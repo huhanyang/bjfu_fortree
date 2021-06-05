@@ -1,6 +1,6 @@
 version: "3"
 
-# 此脚本将拉取Docker-Hub上构建的前端后端应用镜像并启动
+# 此脚本将自行构建前端后端应用并启动
 services:
 
   minio:
@@ -29,7 +29,9 @@ services:
       - MYSQL_ROOT_PASSWORD=my-secret-pw
 
   back_app:
-    image: tank59he/fortree_back
+    build:
+      context: ./back
+      dockerfile: Dockerfile
     networks:
       frontend:
         aliases:
@@ -42,7 +44,9 @@ services:
       - mysql
 
   front_app:
-    image: tank59he/fortree_front
+    build:
+      context: ./front
+      dockerfile: Dockerfile
     networks:
       frontend:
         aliases:
