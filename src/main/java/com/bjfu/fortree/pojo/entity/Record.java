@@ -1,5 +1,6 @@
 package com.bjfu.fortree.pojo.entity;
 
+import com.bjfu.fortree.enums.entity.RecordTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -62,6 +63,12 @@ public class Record extends BaseEntity {
      */
     @Column(nullable = false)
     private Boolean isTreeWithId;
+    /**
+     * 类型
+     */
+    @Enumerated
+    @Column(nullable=false)
+    private RecordTypeEnum type;
 
     /**
      * 此记录下的单个树记录

@@ -1,5 +1,6 @@
 package com.bjfu.fortree.pojo.request.woodland;
 
+import com.bjfu.fortree.enums.entity.RecordTypeEnum;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
@@ -49,4 +50,9 @@ public class EditRecordRequest {
      */
     @Length(max = 512, message = "附加信息长度最大512个字符")
     private String addition;
+    /**
+     * 记录类型
+     */
+    @NotNull(message = "及记录类型不能为空")
+    private RecordTypeEnum type;
 }

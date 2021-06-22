@@ -1,5 +1,6 @@
 package com.bjfu.fortree.pojo.vo;
 
+import com.bjfu.fortree.enums.entity.RecordTypeEnum;
 import com.bjfu.fortree.pojo.dto.RecordDTO;
 import com.bjfu.fortree.pojo.dto.TreeDTO;
 import com.bjfu.fortree.pojo.dto.UserDTO;
@@ -75,6 +76,10 @@ public class RecordVO {
      * 树木是否携带编号
      */
     private Boolean isTreeWithId;
+    /**
+     * 类型
+     */
+    private RecordTypeEnum type;
 
     /**
      * 此记录下的单个树记录

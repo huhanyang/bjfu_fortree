@@ -1,5 +1,6 @@
 package com.bjfu.fortree.pojo.dto;
 
+import com.bjfu.fortree.enums.entity.RecordTypeEnum;
 import com.bjfu.fortree.pojo.entity.Record;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
@@ -78,7 +79,10 @@ public class RecordDTO {
      * 树木是否携带编号
      */
     private Boolean isTreeWithId;
-
+    /**
+     * 类型
+     */
+    private RecordTypeEnum type;
     /**
      * 此记录下的单个树记录
      */
