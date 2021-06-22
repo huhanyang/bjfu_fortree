@@ -63,6 +63,14 @@ public class UserVO {
      */
     private String organization;
     /**
+     * 手机号
+     */
+    private String phone;
+    /**
+     * 邮箱
+     */
+    private String email;
+    /**
      * 账号类型
      */
     private UserTypeEnum type;

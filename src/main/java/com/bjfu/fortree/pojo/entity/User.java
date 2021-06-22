@@ -39,6 +39,16 @@ public class User extends BaseEntity {
     @Column(length=32, nullable=false)
     private String organization;
     /**
+     * 手机号
+     */
+    @Column(length=32, nullable=false)
+    private String phone;
+    /**
+     * 邮箱
+     */
+    @Column(length=32, nullable=false)
+    private String email;
+    /**
      * 账号类型
      */
     @Enumerated
