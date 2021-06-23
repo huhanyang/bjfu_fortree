@@ -68,6 +68,10 @@ public class JwtInterceptor implements HandlerInterceptor {
                     ResponseUtil.writeResultToResponse(ResultEnum.ACCOUNT_BANNED, response);
                     return false;
                 }
+                if(UserStateEnum.UNACTIVE.equals(userInfo.getState())){
+                    ResponseUtil.writeResultToResponse(ResultEnum.ACCOUNT_UNACTIVE, response);
+                    return false;
+                }
                 UserInfoContextUtil.setUserInfo(userInfo);
             }
             // 判断是否为用户

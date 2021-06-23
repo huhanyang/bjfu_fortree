@@ -25,7 +25,9 @@ public enum ResultEnum {
     ACCOUNT_BANNED(303, "账号已被封禁"),
     TOKEN_GENERATE_FAILED(304, "Token生成出错"),
     TOKEN_WRONG(305, "Token错误"),
-    PASSWORD_WRONG(305, "密码错误"),
+    PASSWORD_WRONG(306, "密码错误"),
+    ACCOUNT_NOT_UNACTIVE(307, "账号状态非未激活状态"),
+    ACCOUNT_UNACTIVE(307, "账号未激活"),
 
     //4xx 参数错误
     USER_NOT_EXIST(401, "用户不存在"),

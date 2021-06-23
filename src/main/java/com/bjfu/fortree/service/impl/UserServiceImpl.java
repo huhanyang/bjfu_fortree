@@ -1,7 +1,10 @@
 package com.bjfu.fortree.service.impl;
 
+import com.bjfu.fortree.enums.entity.ApplyJobTypeEnum;
 import com.bjfu.fortree.exception.BizException;
+import com.bjfu.fortree.pojo.dto.ApplyJobDTO;
 import com.bjfu.fortree.pojo.dto.UserDTO;
+import com.bjfu.fortree.pojo.entity.ApplyJob;
 import com.bjfu.fortree.pojo.entity.Authority;
 import com.bjfu.fortree.pojo.entity.User;
 import com.bjfu.fortree.enums.ResultEnum;
@@ -11,6 +14,7 @@ import com.bjfu.fortree.enums.entity.UserTypeEnum;
 import com.bjfu.fortree.exception.SystemWrongException;
 import com.bjfu.fortree.exception.WrongParamException;
 import com.bjfu.fortree.pojo.request.BasePageAndSorterRequest;
+import com.bjfu.fortree.repository.job.ApplyJobRepository;
 import com.bjfu.fortree.repository.user.AuthorityRepository;
 import com.bjfu.fortree.repository.user.UserRepository;
 import com.bjfu.fortree.pojo.request.user.*;
@@ -39,6 +43,8 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
     @Autowired
     private AuthorityRepository authorityRepository;
+    @Autowired
+    private ApplyJobRepository applyJobRepository;
 
     @Override
     public UserDTO login(LoginCheckRequest request) {
@@ -52,6 +58,10 @@ public class UserServiceImpl implements UserService {
         // 判断用户是否被封禁
         if(user.getState().equals(UserStateEnum.BANNED)) {
             throw new BizException(ResultEnum.ACCOUNT_BANNED);
+        }
+        // 判断用户是否激活
+        if(user.getState().equals(UserStateEnum.UNACTIVE)) {
+            throw new BizException(ResultEnum.ACCOUNT_UNACTIVE);
         }
         // 返回用户信息
         return new UserDTO(user, false, false, false, false);
@@ -67,11 +77,16 @@ public class UserServiceImpl implements UserService {
         // 创建新用户
         User user = new User();
         user.setType(UserTypeEnum.USER);
-        user.setState(UserStateEnum.ACTIVE);
+        user.setState(UserStateEnum.UNACTIVE);
         BeanUtils.copyProperties(request, user);
         user.setPassword(EncryptionUtil.md5Encode(request.getPassword()));
         // 落库
         userRepository.save(user);
+        // 提交注册申请
+        // 生成状态为申请中的申请实体
+        ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.CONFIRM_REGISTER, request.getAccount());
+        // 申请实体落库
+        applyJobRepository.save(apply);
         // 返回用户信息
         return new UserDTO(user, false, false, false, false);
     }

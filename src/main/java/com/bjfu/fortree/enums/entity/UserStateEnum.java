@@ -15,5 +15,9 @@ public enum UserStateEnum {
     /**
      * 封号状态
      */
-    BANNED
+    BANNED,
+    /**
+     * 未激活状态
+     */
+    UNACTIVE
 }

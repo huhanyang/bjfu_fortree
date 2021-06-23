@@ -24,7 +24,8 @@ public enum ApplyJobTypeEnum {
     EDIT_WOODLAND(new EditWoodlandOperation()),
     EDIT_RECORD(new EditRecordOperation()),
     EXPORT_WOODLANDS_INFO(new ExportWoodlandsInfoOperation()),
-    EXPORT_WOODLANDS_IN_BOUNDS(new ExportWoodlandsInBoundsOperation());
+    EXPORT_WOODLANDS_IN_BOUNDS(new ExportWoodlandsInBoundsOperation()),
+    CONFIRM_REGISTER(new ConfirmRegisterOperation());
 
     /**
      * 申请通过的后置执行类

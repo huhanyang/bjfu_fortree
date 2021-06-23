@@ -42,9 +42,7 @@ public class UserController {
     @PostMapping("/register")
     public BaseResult<UserVO> register(@Validated @RequestBody RegisterRequest request) {
         UserDTO userDTO = userService.register(request);
-        // 生成Token
-        String token = JwtUtil.generateToken(Collections.singletonMap("userAccount", userDTO.getAccount()));
-        return new BaseResult<>(ResultEnum.SUCCESS, new UserVO(userDTO, token));
+        return new BaseResult<>(ResultEnum.SUCCESS, new UserVO(userDTO));
     }
 
     @RequireLogin
