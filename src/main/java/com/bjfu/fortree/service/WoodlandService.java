@@ -100,6 +100,13 @@ public interface WoodlandService {
     List<WoodlandDTO> getAllWoodlands();
 
     /**
+     * 获取所有的林地
+     * @param request 请求
+     * @return 所有的林地实体
+     */
+    List<WoodlandDTO> getAllWoodlands(GetAllWoodlandsRequest request);
+
+    /**
      * 根据创建人获取林地列表
      * @param userAccount 用户账号
      * @param request 请求

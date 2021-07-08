@@ -78,6 +78,11 @@ public class Woodland extends BaseEntity {
      */
     @Column(length=512)
     private String addition;
+    /**
+     * 最新记录
+     */
+    @OneToOne
+    private Record newRecord;
 
     /**
      * 创建的记录

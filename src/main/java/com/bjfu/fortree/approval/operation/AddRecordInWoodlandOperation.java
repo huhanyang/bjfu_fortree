@@ -13,6 +13,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Comparator;
 import java.util.Optional;
 
 /**
@@ -39,26 +40,23 @@ public class AddRecordInWoodlandOperation implements ApprovedOperation {
         BeanUtils.copyProperties(addRecordRequest, record);
         record.setWoodland(woodland);
         record.setCreator(applyUser);
+        // 自动计算数据
         if(record.getType().equals(RecordTypeEnum.AUTO_CAL)) {
-            int treeCount = 0;
-            double maxHeight = 0;
-            double minHeight = Integer.MAX_VALUE;
-            double heightCount = 0;
-            for (Tree tree : record.getTrees()) {
-                treeCount+=1;
-                if(maxHeight < tree.getHeight()) {
-                    maxHeight = tree.getHeight();
-                }
-                if(minHeight > tree.getHeight()) {
-                    minHeight = tree.getHeight();
-                }
-                heightCount += tree.getHeight();
-            }
-            record.setTreeCount(treeCount);
-            record.setMaxHeight(maxHeight);
-            record.setMinHeight(minHeight);
-            record.setMeanHeight(treeCount==0?0:heightCount/treeCount);
+            record.setTreeCount(0);
+            record.setMaxHeight(0.0);
+            record.setMinHeight(0.0);
+            record.setMeanHeight(0.0);
         }
         recordRepository.save(record);
+        // 更新最新记录
+        Record maxRecord = woodland.getRecords()
+                .stream()
+                .max(Comparator.comparing(Record::getMeasureTime))
+                .filter(record1 -> record1.getMeasureTime().after(record.getMeasureTime()))
+                .orElse(null);
+        if(maxRecord == null) {
+            woodland.setNewRecord(record);
+            woodlandRepository.save(woodland);
+        }
     }
 }

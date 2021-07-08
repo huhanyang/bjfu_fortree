@@ -418,6 +418,50 @@ public class WoodlandServiceImpl implements WoodlandService {
     }
 
     @Override
+    public List<WoodlandDTO> getAllWoodlands(GetAllWoodlandsRequest request) {
+        List<Woodland> woodlands = woodlandRepository.findAll((root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (StringUtils.hasText(request.getName())) {
+                predicates.add(cb.like(root.get("name"), "%" + request.getName() + "%"));
+            }
+            if (StringUtils.hasText(request.getCountry())) {
+                predicates.add(cb.like(root.get("country"), "%" + request.getCountry() + "%"));
+            }
+            if (StringUtils.hasText(request.getProvince())) {
+                predicates.add(cb.like(root.get("province"), "%" + request.getProvince() + "%"));
+            }
+            if (StringUtils.hasText(request.getCity())) {
+                predicates.add(cb.like(root.get("city"), "%" + request.getCity() + "%"));
+            }
+            if (request.getAreaDirection() != null && request.getArea() != null) {
+                if(request.getAreaDirection().equals(GetAllWoodlandsRequest.NumberDirection.MIN)) {
+                    predicates.add(cb.greaterThanOrEqualTo(cb.prod(root.get("length"), root.get("width")), request.getArea()));
+                } else {
+                    predicates.add(cb.lessThanOrEqualTo(cb.prod(root.get("length"), root.get("width")), request.getArea()));
+                }
+            }
+            if (request.getTreeCountDirection() != null && request.getTreeCount() != null) {
+                if(request.getTreeCountDirection().equals(GetAllWoodlandsRequest.NumberDirection.MIN)) {
+                    predicates.add(cb.greaterThanOrEqualTo(root.get("newRecord").get("treeCount"), request.getTreeCount()));
+                } else {
+                    predicates.add(cb.lessThanOrEqualTo(root.get("newRecord").get("treeCount"), request.getTreeCount()));
+                }
+            }
+            if (request.getTreeMeanHeightDirection() != null && request.getTreeMeanHeight() != null) {
+                if(request.getTreeMeanHeightDirection().equals(GetAllWoodlandsRequest.NumberDirection.MIN)) {
+                    predicates.add(cb.greaterThanOrEqualTo(root.get("newRecord").get("meanHeight"), request.getTreeMeanHeight()));
+                } else {
+                    predicates.add(cb.lessThanOrEqualTo(root.get("newRecord").get("meanHeight"), request.getTreeMeanHeight()));
+                }
+            }
+            return query.where(predicates.toArray(new Predicate[0])).getRestriction();
+        });
+        return woodlands.stream()
+                .map(woodland -> new WoodlandDTO(woodland, false, false))
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public Page<WoodlandDTO> getWoodlandsByCreator(String userAccount, GetWoodlandsRequest request) {
         // 查找用户
         User user = userRepository.findByAccount(userAccount)

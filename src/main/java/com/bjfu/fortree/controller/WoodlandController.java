@@ -130,6 +130,13 @@ public class WoodlandController {
         return new BaseResult<>(ResultEnum.SUCCESS, woodlandVOS);
     }
 
+    @PostMapping("/getAllWoodlands")
+    public BaseResult<List<WoodlandVO>> getAllWoodlands(@Validated @RequestBody GetAllWoodlandsRequest request) {
+        List<WoodlandDTO> woodlandDTOS = woodlandService.getAllWoodlands(request);
+        List<WoodlandVO> woodlandVOS = woodlandDTOS.stream().map(WoodlandVO::new).collect(Collectors.toList());
+        return new BaseResult<>(ResultEnum.SUCCESS, woodlandVOS);
+    }
+
     @RequireLogin
     @PostMapping("/getWoodlandsByCreator")
     public BaseResult<Page<WoodlandVO>> getWoodlandsByCreator(@Validated @RequestBody GetWoodlandsRequest request) {
