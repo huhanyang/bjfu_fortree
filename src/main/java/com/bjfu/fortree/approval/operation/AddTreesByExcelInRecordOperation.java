@@ -52,6 +52,7 @@ public class AddTreesByExcelInRecordOperation implements ApprovedOperation {
         List<Tree> addTress = trees.stream().map(tree -> {
             Tree treeEntity = new Tree();
             BeanUtils.copyProperties(tree, treeEntity);
+            treeEntity.setAbsolutePosition(Optional.ofNullable(tree.getAbsolutePosition()).map(g2dPoint -> g2dPoint.convertToGeom()).orElse(null));
             treeEntity.setRecord(record);
             return treeEntity;
         }).collect(Collectors.toList());

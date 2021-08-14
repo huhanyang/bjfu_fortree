@@ -1,7 +1,9 @@
 package com.bjfu.fortree.excel.head;
 
 import com.alibaba.excel.annotation.ExcelProperty;
+import com.bjfu.fortree.pojo.dto.TreeDTO;
 import com.bjfu.fortree.pojo.entity.Tree;
+import com.bjfu.fortree.spatial.G2dPoint;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
@@ -36,13 +38,23 @@ public class TreeInfoHead {
     @ExcelProperty("冠幅(cm)")
     private Double crownWidth;
     /**
+     * 枝下高 厘米
+     */
+    @ExcelProperty("枝下高(cm)")
+    private Double subbranchHeight;
+
+    /**
+     * 绝对坐标
+     */
+    @ExcelProperty("绝对坐标")
+    private G2dPoint absolutePosition;
+    /**
      * 附加信息(JSON)
      */
     @ExcelProperty("附加信息")
     private String addition;
-    public TreeInfoHead() {
-    }
     public TreeInfoHead(Tree tree) {
-        BeanUtils.copyProperties(tree, this);
+        TreeDTO treeDTO = new TreeDTO(tree, false);
+        BeanUtils.copyProperties(treeDTO, this);
     }
 }

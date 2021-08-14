@@ -30,6 +30,7 @@ public class AddTreesHead {
      */
     @ExcelProperty("冠幅")
     private Double crownWidth;
+
     /**
      * 附加信息(JSON)
      */

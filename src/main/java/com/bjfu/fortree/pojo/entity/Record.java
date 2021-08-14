@@ -89,23 +89,27 @@ public class Record extends BaseEntity {
     /**
      * 龄组
      */
-    @Column(nullable = false, length = 64)
+    @Column(length = 64)
     private String ageGroup;
     /**
      * 坡度
      */
+    @Column(length = 64)
     private String slope;
     /**
      * 坡向
      */
+    @Column(length = 64)
     private String aspect;
     /**
      * 起源
      */
+    @Column(length = 64)
     private String origin;
     /**
      * 树种组成
      */
+    @Column(length = 256)
     private String speciesComposition;
 
     /**

@@ -49,4 +49,11 @@ public class G2dPoint {
         return convertToGeom(this);
     }
 
+    @Override
+    public String toString() {
+        return "G2dPoint{" +
+                "longitude=" + longitude +
+                ", latitude=" + latitude +
+                '}';
+    }
 }

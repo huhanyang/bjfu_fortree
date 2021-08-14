@@ -2,6 +2,8 @@ package com.bjfu.fortree.pojo.entity;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.geolatte.geom.G2D;
+import org.geolatte.geom.Point;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -41,14 +43,20 @@ public class Tree extends BaseEntity {
     /**
      * 胸径 厘米
      */
-    @Column(nullable = false)
     private Double dbh;
     /**
      * 冠幅 厘米
      */
-    @Column(nullable = false)
     private Double crownWidth;
-
+    /**
+     * 枝下高 厘米
+     */
+    private Double subbranchHeight;
+    /**
+     * 绝对坐标
+     */
+    @Column()
+    private Point<G2D> absolutePosition;
     /**
      * 附加信息(JSON)
      */

@@ -33,7 +33,7 @@ public class ApplyJob extends BaseEntity {
     /**
      * 申请参数
      */
-    @Column(length = 512, nullable = false)
+    @Column(length = 1024, nullable = false)
     private String applyParam;
     /**
      * 申请时上传的oss文件

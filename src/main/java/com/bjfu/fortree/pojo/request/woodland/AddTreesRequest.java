@@ -1,5 +1,6 @@
 package com.bjfu.fortree.pojo.request.woodland;
 
+import com.bjfu.fortree.spatial.G2dPoint;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
@@ -52,13 +53,20 @@ public class AddTreesRequest {
         /**
          * 胸径
          */
-        @NotNull(message = "胸径不能为空")
         private Double dbh;
         /**
          * 冠幅
          */
-        @NotNull(message = "冠幅不能为空")
         private Double crownWidth;
+        /**
+         * 枝下高 厘米
+         */
+        private Double subbranchHeight;
+
+        /**
+         * 绝对坐标
+         */
+        private G2dPoint absolutePosition;
         /**
          * 附加信息(JSON)
          */

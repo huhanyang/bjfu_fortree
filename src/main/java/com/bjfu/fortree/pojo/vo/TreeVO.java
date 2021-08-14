@@ -1,6 +1,7 @@
 package com.bjfu.fortree.pojo.vo;
 
 import com.bjfu.fortree.pojo.dto.TreeDTO;
+import com.bjfu.fortree.spatial.G2dPoint;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
@@ -46,6 +47,15 @@ public class TreeVO {
      * 冠幅 厘米
      */
     private Double crownWidth;
+    /**
+     * 枝下高 厘米
+     */
+    private Double subbranchHeight;
+
+    /**
+     * 绝对坐标
+     */
+    private G2dPoint absolutePosition;
     /**
      * 附加信息(JSON)
      */

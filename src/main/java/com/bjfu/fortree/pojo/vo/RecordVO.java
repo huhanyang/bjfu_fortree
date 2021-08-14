@@ -67,6 +67,39 @@ public class RecordVO {
      */
     private RecordTypeEnum type;
     /**
+     * 树高测量方式
+     */
+    private String measureType;
+    /**
+     * 郁闭度 0-100(%)
+     */
+    private Double canopyDensity;
+    /**
+     * 优势树种
+     */
+    private String dominantSpecies;
+
+    /**
+     * 龄组
+     */
+    private String ageGroup;
+    /**
+     * 坡度
+     */
+    private String slope;
+    /**
+     * 坡向
+     */
+    private String aspect;
+    /**
+     * 起源
+     */
+    private String origin;
+    /**
+     * 树种组成
+     */
+    private String speciesComposition;
+    /**
      * 此记录下的单个树记录
      */
     private List<TreeVO> trees = new ArrayList<>();

@@ -4,6 +4,8 @@ import com.bjfu.fortree.enums.entity.RecordTypeEnum;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Past;
 import java.util.Date;
@@ -59,6 +61,42 @@ public class AddRecordRequest {
     /**
      * 记录类型
      */
-    @NotNull(message = "及记录类型不能为空")
+    @NotNull(message = "记录类型不能为空")
     private RecordTypeEnum type;
+    /**
+     * 树高测量方式
+     */
+    @NotNull(message = "树高测量方式不能为空")
+    private String measureType;
+    /**
+     * 郁闭度 0-100(%)
+     */
+    @NotNull(message = "郁闭度不能为空")
+    private Double canopyDensity;
+    /**
+     * 优势树种
+     */
+    @NotNull(message = "优势树种不能为空")
+    private String dominantSpecies;
+
+    /**
+     * 龄组
+     */
+    private String ageGroup;
+    /**
+     * 坡度
+     */
+    private String slope;
+    /**
+     * 坡向
+     */
+    private String aspect;
+    /**
+     * 起源
+     */
+    private String origin;
+    /**
+     * 树种组成
+     */
+    private String speciesComposition;
 }
