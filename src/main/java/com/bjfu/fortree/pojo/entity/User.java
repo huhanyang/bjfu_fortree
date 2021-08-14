@@ -11,6 +11,7 @@ import java.util.List;
 
 /**
  * 用户实体类
+ *
  * @author warthog
  */
 @Getter
@@ -21,69 +22,69 @@ public class User extends BaseEntity {
     /**
      * 用户名
      */
-    @Column(length=32, nullable=false)
+    @Column(length = 32, nullable = false)
     private String account;
     /**
      * 密码
      */
-    @Column(length=32, nullable=false)
+    @Column(length = 32, nullable = false)
     private String password;
     /**
      * 姓名
      */
-    @Column(length=32, nullable=false)
+    @Column(length = 32, nullable = false)
     private String name;
     /**
      * 所属组织名
      */
-    @Column(length=32, nullable=false)
+    @Column(length = 32, nullable = false)
     private String organization;
     /**
      * 手机号
      */
-    @Column(length=32, nullable=false)
+    @Column(length = 32, nullable = false)
     private String phone;
     /**
      * 邮箱
      */
-    @Column(length=32, nullable=false)
+    @Column(length = 32, nullable = false)
     private String email;
     /**
      * 账号类型
      */
     @Enumerated
-    @Column(nullable=false)
+    @Column(nullable = false)
     private UserTypeEnum type;
 
     /**
      * 账号状态
      */
     @Enumerated
-    @Column(nullable=false)
+    @Column(nullable = false)
     private UserStateEnum state;
 
     /**
      * 拥有的权限
      */
-    @OneToMany(cascade=CascadeType.ALL, mappedBy = "user")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
     private List<Authority> authorities = new ArrayList<>();
 
     /**
      * 创建的林地
      */
-    @OneToMany(cascade=CascadeType.ALL, mappedBy = "creator")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "creator")
     private List<Woodland> woodlands = new ArrayList<>();
 
     /**
      * 创建的记录
      */
-    @OneToMany(cascade=CascadeType.ALL, mappedBy = "creator")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "creator")
     private List<Record> records = new ArrayList<>();
 
     /**
      * 申请
      */
-    @OneToMany(cascade=CascadeType.ALL, mappedBy = "applyUser")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "applyUser")
     private List<ApplyJob> applyJobs = new ArrayList<>();
 
 

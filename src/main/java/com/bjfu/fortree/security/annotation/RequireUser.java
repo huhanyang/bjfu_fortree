@@ -7,6 +7,7 @@ import java.lang.annotation.Target;
 
 /**
  * 访问接口需要为普通用户
+ *
  * @author warthog
  */
 @Target({ElementType.METHOD})

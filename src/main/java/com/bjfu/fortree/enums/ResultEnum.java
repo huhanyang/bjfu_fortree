@@ -4,6 +4,7 @@ import lombok.Getter;
 
 /**
  * 接口返回信息的枚举类
+ *
  * @author warthog
  */
 @Getter

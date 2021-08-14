@@ -3,12 +3,9 @@ package com.bjfu.fortree.pojo.request.woodland;
 import com.bjfu.fortree.pojo.request.BasePageAndSorterRequest;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.springframework.data.domain.Sort;
 
 import javax.annotation.Nullable;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.List;
 
 /**
  * @author warthog

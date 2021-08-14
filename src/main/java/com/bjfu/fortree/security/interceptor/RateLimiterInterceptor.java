@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 限流拦截器
+ *
  * @author warthog
  */
 @Slf4j
@@ -31,16 +32,6 @@ public class RateLimiterInterceptor implements HandlerInterceptor {
                     return RateLimiter.create(5);
                 }
             });
-
-    @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        String ip = getIpAddr(request);
-        if(!this.ipRequestCaches.get(ip).tryAcquire()) {
-            ResponseUtil.writeResultToResponse(ResultEnum.FREQUENT_VISITS, response);
-            return false;
-        }
-        return true;
-    }
 
     public static String getIpAddr(HttpServletRequest request) {
         String ipAddress = request.getHeader("x-forwarded-for");
@@ -66,5 +57,15 @@ public class RateLimiterInterceptor implements HandlerInterceptor {
             }
         }
         return ipAddress;
+    }
+
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        String ip = getIpAddr(request);
+        if (!this.ipRequestCaches.get(ip).tryAcquire()) {
+            ResponseUtil.writeResultToResponse(ResultEnum.FREQUENT_VISITS, response);
+            return false;
+        }
+        return true;
     }
 }

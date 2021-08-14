@@ -7,6 +7,7 @@ import javax.validation.constraints.NotBlank;
 
 /**
  * 修改密码请求
+ *
  * @author warthog
  */
 @Data

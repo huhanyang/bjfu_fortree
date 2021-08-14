@@ -1,7 +1,7 @@
 package com.bjfu.fortree.repository.user;
 
-import com.bjfu.fortree.pojo.entity.User;
 import com.bjfu.fortree.enums.entity.UserStateEnum;
+import com.bjfu.fortree.pojo.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
@@ -12,12 +12,14 @@ import java.util.Optional;
 
 /**
  * 用户的持久接口
+ *
  * @author warthog
  */
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
 
     /**
      * 根据账号查找用户实体
+     *
      * @param account 账号
      * @return 用户实体
      */
@@ -25,6 +27,7 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 
     /**
      * 根据账号查找用户实体并加锁
+     *
      * @param account 账号
      * @return 用户实体
      */
@@ -34,8 +37,9 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 
     /**
      * 判断是否存在账号和状态匹配的用户(判断是否封号或活跃)
+     *
      * @param account 用户账号
-     * @param state 用户状态
+     * @param state   用户状态
      * @return 是否存在
      */
     boolean existsByAccountAndState(String account, UserStateEnum state);

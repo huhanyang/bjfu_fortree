@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
  * 启动类
+ *
  * @author warthog
  */
 @EnableAsync
@@ -16,8 +17,8 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @SpringBootApplication
 public class ForTreeApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(ForTreeApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(ForTreeApplication.class, args);
+    }
 
 }

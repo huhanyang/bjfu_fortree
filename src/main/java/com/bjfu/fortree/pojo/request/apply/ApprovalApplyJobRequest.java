@@ -9,6 +9,7 @@ import javax.validation.constraints.NotNull;
 
 /**
  * 审批申请的请求
+ *
  * @author warthog
  */
 @Data

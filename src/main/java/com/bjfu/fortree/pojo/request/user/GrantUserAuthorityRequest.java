@@ -10,6 +10,7 @@ import java.util.List;
 
 /**
  * 为用户授权
+ *
  * @author warthog
  */
 @Data

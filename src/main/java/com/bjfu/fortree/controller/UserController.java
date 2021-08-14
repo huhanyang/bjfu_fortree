@@ -1,14 +1,14 @@
 package com.bjfu.fortree.controller;
 
-import com.bjfu.fortree.exception.SystemWrongException;
-import com.bjfu.fortree.pojo.dto.UserDTO;
 import com.bjfu.fortree.enums.ResultEnum;
+import com.bjfu.fortree.exception.SystemWrongException;
+import com.bjfu.fortree.pojo.BaseResult;
+import com.bjfu.fortree.pojo.dto.UserDTO;
 import com.bjfu.fortree.pojo.request.user.*;
 import com.bjfu.fortree.pojo.vo.UserVO;
 import com.bjfu.fortree.security.annotation.RequireAdmin;
 import com.bjfu.fortree.security.annotation.RequireLogin;
 import com.bjfu.fortree.service.UserService;
-import com.bjfu.fortree.pojo.BaseResult;
 import com.bjfu.fortree.util.JwtUtil;
 import com.bjfu.fortree.util.UserInfoContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +21,7 @@ import java.util.Collections;
 
 /**
  * 用户相关操作接口
+ *
  * @author warthog
  */
 @Validated
@@ -60,7 +61,7 @@ public class UserController {
         UserDTO userDTO = userService.getInfo(account);
         String operatorAccount = UserInfoContextUtil.getUserInfo().map(UserDTO::getAccount)
                 .orElseThrow(() -> new SystemWrongException(ResultEnum.USER_INFO_CONTEXT_WRONG));
-        if(account.equals(operatorAccount)) {
+        if (account.equals(operatorAccount)) {
             // 生成Token
             String token = JwtUtil.generateToken(Collections.singletonMap("userAccount", userDTO.getAccount()));
             return new BaseResult<>(ResultEnum.SUCCESS, new UserVO(userDTO, token));

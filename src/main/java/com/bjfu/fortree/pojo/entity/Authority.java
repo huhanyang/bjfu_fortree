@@ -8,6 +8,7 @@ import javax.persistence.*;
 
 /**
  * 用户权限实体类
+ *
  * @author warthog
  */
 @Getter
@@ -26,7 +27,7 @@ public class Authority extends BaseEntity {
      * 权限类型
      */
     @Enumerated
-    @Column(nullable=false)
+    @Column(nullable = false)
     private AuthorityTypeEnum type;
 
 }

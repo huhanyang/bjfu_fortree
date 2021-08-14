@@ -1,29 +1,30 @@
 package com.bjfu.fortree.service.impl;
 
+import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.enums.entity.ApplyJobTypeEnum;
+import com.bjfu.fortree.enums.entity.AuthorityTypeEnum;
+import com.bjfu.fortree.enums.entity.UserStateEnum;
+import com.bjfu.fortree.enums.entity.UserTypeEnum;
 import com.bjfu.fortree.exception.BizException;
-import com.bjfu.fortree.pojo.dto.ApplyJobDTO;
+import com.bjfu.fortree.exception.SystemWrongException;
+import com.bjfu.fortree.exception.WrongParamException;
 import com.bjfu.fortree.pojo.dto.UserDTO;
 import com.bjfu.fortree.pojo.entity.ApplyJob;
 import com.bjfu.fortree.pojo.entity.Authority;
 import com.bjfu.fortree.pojo.entity.User;
-import com.bjfu.fortree.enums.ResultEnum;
-import com.bjfu.fortree.enums.entity.AuthorityTypeEnum;
-import com.bjfu.fortree.enums.entity.UserStateEnum;
-import com.bjfu.fortree.enums.entity.UserTypeEnum;
-import com.bjfu.fortree.exception.SystemWrongException;
-import com.bjfu.fortree.exception.WrongParamException;
 import com.bjfu.fortree.pojo.request.BasePageAndSorterRequest;
+import com.bjfu.fortree.pojo.request.user.*;
 import com.bjfu.fortree.repository.job.ApplyJobRepository;
 import com.bjfu.fortree.repository.user.AuthorityRepository;
 import com.bjfu.fortree.repository.user.UserRepository;
-import com.bjfu.fortree.pojo.request.user.*;
 import com.bjfu.fortree.service.UserService;
 import com.bjfu.fortree.util.EncryptionUtil;
 import com.bjfu.fortree.util.UserInfoContextUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -39,6 +40,22 @@ import java.util.stream.Collectors;
 @Service
 public class UserServiceImpl implements UserService {
 
+    /**
+     * 用户实体属性顺序
+     */
+    private static final Map<String, Integer> USER_FIELD_ORDER_WEIGHT = new HashMap<>();
+
+    static {
+        USER_FIELD_ORDER_WEIGHT.put("account", 1);
+        USER_FIELD_ORDER_WEIGHT.put("type", 2);
+        USER_FIELD_ORDER_WEIGHT.put("state", 3);
+        USER_FIELD_ORDER_WEIGHT.put("name", 4);
+        USER_FIELD_ORDER_WEIGHT.put("organization", 5);
+        USER_FIELD_ORDER_WEIGHT.put("createdTime", 6);
+
+
+    }
+
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -52,15 +69,15 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByAccount(request.getAccount())
                 .orElseThrow(() -> new BizException(ResultEnum.ACCOUNT_NOT_EXIST_OR_PASSWORD_WRONG));
         // 判断密码是否匹配
-        if(!user.getPassword().equals(EncryptionUtil.md5Encode(request.getPassword()))) {
+        if (!user.getPassword().equals(EncryptionUtil.md5Encode(request.getPassword()))) {
             throw new BizException(ResultEnum.PASSWORD_WRONG);
         }
         // 判断用户是否被封禁
-        if(user.getState().equals(UserStateEnum.BANNED)) {
+        if (user.getState().equals(UserStateEnum.BANNED)) {
             throw new BizException(ResultEnum.ACCOUNT_BANNED);
         }
         // 判断用户是否激活
-        if(user.getState().equals(UserStateEnum.UNACTIVE)) {
+        if (user.getState().equals(UserStateEnum.UNACTIVE)) {
             throw new BizException(ResultEnum.ACCOUNT_UNACTIVE);
         }
         // 返回用户信息
@@ -97,7 +114,7 @@ public class UserServiceImpl implements UserService {
         // 只有管理员可以获取其他用户的信息
         UserDTO userInfo = UserInfoContextUtil.getUserInfo()
                 .orElseThrow(() -> new SystemWrongException(ResultEnum.USER_INFO_CONTEXT_WRONG));
-        if(!userInfo.getAccount().equals(userAccount) && !userInfo.getType().equals(UserTypeEnum.ADMIN)) {
+        if (!userInfo.getAccount().equals(userAccount) && !userInfo.getType().equals(UserTypeEnum.ADMIN)) {
             throw new BizException(ResultEnum.REQUIRE_ADMIN);
         }
         User user = userRepository.findByAccount(userAccount)
@@ -119,7 +136,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByAccountForUpdate(userAccount)
                 .orElseThrow(() -> new SystemWrongException(ResultEnum.JWT_USER_INFO_ERROR));
         // 密码验证
-        if(!user.getPassword().equals(EncryptionUtil.md5Encode(request.getOldPassword()))) {
+        if (!user.getPassword().equals(EncryptionUtil.md5Encode(request.getOldPassword()))) {
             throw new BizException(ResultEnum.PASSWORD_WRONG);
         }
         // 修改密码
@@ -175,21 +192,6 @@ public class UserServiceImpl implements UserService {
         // 删除存在的权限列表
         user.getAuthorities().removeAll(needDeleteAuthorities);
         authorityRepository.deleteAll(needDeleteAuthorities);
-    }
-
-    /**
-     * 用户实体属性顺序
-     */
-    private static final Map<String, Integer> USER_FIELD_ORDER_WEIGHT = new HashMap<>();
-    static {
-        USER_FIELD_ORDER_WEIGHT.put("account", 1);
-        USER_FIELD_ORDER_WEIGHT.put("type", 2);
-        USER_FIELD_ORDER_WEIGHT.put("state", 3);
-        USER_FIELD_ORDER_WEIGHT.put("name", 4);
-        USER_FIELD_ORDER_WEIGHT.put("organization", 5);
-        USER_FIELD_ORDER_WEIGHT.put("createdTime", 6);
-
-
     }
 
     @Override

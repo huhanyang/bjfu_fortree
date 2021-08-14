@@ -13,15 +13,6 @@ import java.util.Date;
 @Data
 public class TreeDTO {
 
-    public TreeDTO(Tree tree, Boolean needRecord) {
-        if(tree != null) {
-            BeanUtils.copyProperties(tree, this, "record");
-            if(needRecord) {
-                this.record = new RecordDTO(tree.getRecord(), false, false, false);
-            }
-        }
-    }
-
     /**
      * 主键
      */
@@ -62,4 +53,12 @@ public class TreeDTO {
      * 附加信息(JSON)
      */
     private String addition;
+    public TreeDTO(Tree tree, Boolean needRecord) {
+        if (tree != null) {
+            BeanUtils.copyProperties(tree, this, "record");
+            if (needRecord) {
+                this.record = new RecordDTO(tree.getRecord(), false, false, false);
+            }
+        }
+    }
 }

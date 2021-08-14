@@ -6,10 +6,6 @@ import com.alibaba.excel.write.metadata.WriteSheet;
 import com.alibaba.excel.write.metadata.WriteTable;
 import com.alibaba.fastjson.JSONObject;
 import com.bjfu.fortree.approval.ApprovedOperationDispatch;
-import com.bjfu.fortree.pojo.dto.ApplyJobDTO;
-import com.bjfu.fortree.pojo.entity.ApplyJob;
-import com.bjfu.fortree.pojo.entity.User;
-import com.bjfu.fortree.pojo.entity.Woodland;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.enums.entity.ApplyJobTypeEnum;
 import com.bjfu.fortree.enums.entity.AuthorityTypeEnum;
@@ -18,6 +14,10 @@ import com.bjfu.fortree.excel.head.TreeInfoHead;
 import com.bjfu.fortree.excel.head.WoodlandInfoHead;
 import com.bjfu.fortree.exception.SystemWrongException;
 import com.bjfu.fortree.exception.WrongParamException;
+import com.bjfu.fortree.pojo.dto.ApplyJobDTO;
+import com.bjfu.fortree.pojo.entity.ApplyJob;
+import com.bjfu.fortree.pojo.entity.User;
+import com.bjfu.fortree.pojo.entity.Woodland;
 import com.bjfu.fortree.pojo.request.export.ExportWoodlandsInBoundsRequest;
 import com.bjfu.fortree.repository.job.ApplyJobRepository;
 import com.bjfu.fortree.repository.user.AuthorityRepository;
@@ -66,7 +66,7 @@ public class ExportServiceImpl implements ExportService {
                 .replaceAll("\\+", "%20") + ".xlsx";
         // 设置http响应头
         response.setHeader("Content-disposition", "attachment;filename*=utf-8''" + fileName);
-        try{
+        try {
             ExcelWriter excelWriter = EasyExcel.write(response.getOutputStream()).autoCloseStream(false).build();
             // 写入林地信息sheet
             WriteSheet woodlandSheet = EasyExcel.writerSheet("林地信息").build();
@@ -77,8 +77,8 @@ public class ExportServiceImpl implements ExportService {
                     woodlandSheet, recordsInfoTable);
             // 写入多个记录信息sheet
             woodland.getRecords().forEach(record -> {
-                SimpleDateFormat simpleDateFormat=new SimpleDateFormat("yyyy-MM-dd");
-                WriteSheet recordSheet = EasyExcel.writerSheet("记录"+simpleDateFormat.format(record.getCreatedTime())).build();
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                WriteSheet recordSheet = EasyExcel.writerSheet("记录" + simpleDateFormat.format(record.getCreatedTime())).build();
                 WriteTable recordInfoTable = EasyExcel.writerTable(0).needHead(Boolean.TRUE).head(RecordInfoHead.class).build();
                 WriteTable treesInfoTable = EasyExcel.writerTable(1).needHead(Boolean.TRUE).head(TreeInfoHead.class).build();
                 excelWriter.write(Collections.singletonList(new RecordInfoHead(record)), recordSheet, recordInfoTable);
@@ -104,13 +104,13 @@ public class ExportServiceImpl implements ExportService {
         woodlandRepository.findAllById(woodlandIds)
                 .forEach(woodland -> stringBuilder.append(woodland.getName()).append(','));
         String exportWoodlandsName = stringBuilder.toString();
-        if(stringBuilder.capacity() > 250) {
+        if (stringBuilder.capacity() > 250) {
             exportWoodlandsName = stringBuilder.substring(0, 250) + "...";
         }
         // 序列化申请参数
         String applyParam = JSONObject.toJSONString(woodlandIds);
         // 判断是否拥有免审批权限
-        if(authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.EXPORT_ANY_INFO)) {
+        if (authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.EXPORT_ANY_INFO)) {
             // 生成状态为通过的申请实体
             ApplyJob passedApply = ApplyJob.createPassedApply(user, ApplyJobTypeEnum.EXPORT_WOODLANDS_INFO, applyParam,
                     exportWoodlandsName);
@@ -140,13 +140,13 @@ public class ExportServiceImpl implements ExportService {
         woodlandRepository.findAllInBounds(request.getPolygon().convertToGeom())
                 .forEach(woodland -> stringBuilder.append(woodland.getName()).append(','));
         String exportWoodlandsName = stringBuilder.toString();
-        if(stringBuilder.capacity() > 250) {
+        if (stringBuilder.capacity() > 250) {
             exportWoodlandsName = stringBuilder.substring(0, 250) + "...";
         }
         // 序列化申请参数
         String applyParam = JSONObject.toJSONString(request);
         // 判断是否拥有免审批权限
-        if(authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.EXPORT_ANY_INFO)) {
+        if (authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.EXPORT_ANY_INFO)) {
             // 生成状态为通过的申请实体
             ApplyJob passedApply = ApplyJob.createPassedApply(user, ApplyJobTypeEnum.EXPORT_WOODLANDS_INFO, applyParam,
                     exportWoodlandsName);

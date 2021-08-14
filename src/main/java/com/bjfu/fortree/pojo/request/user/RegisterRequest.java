@@ -8,6 +8,7 @@ import javax.validation.constraints.NotBlank;
 
 /**
  * 注册请求
+ *
  * @author warthog
  */
 @Data

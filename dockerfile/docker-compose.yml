@@ -7,14 +7,14 @@ services:
     image: minio/minio
     networks:
       frontend:
-          aliases:
-            - frontend.minio
+        aliases:
+          - frontend.minio
       backend:
-          aliases:
-            - backend.minio
+        aliases:
+          - backend.minio
     volumes:
       - minio-data:/data
-    command: ["server", "/data"]
+    command: [ "server", "/data" ]
 
   mysql:
     image: mysql:8

@@ -1,7 +1,5 @@
 package com.bjfu.fortree.pojo.entity;
 
-import com.bjfu.fortree.pojo.entity.BaseEntity;
-import com.bjfu.fortree.pojo.entity.Record;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,6 +10,7 @@ import javax.persistence.Table;
 
 /**
  * 单棵树木实体类
+ *
  * @author warthog
  */
 @Getter
@@ -27,32 +26,32 @@ public class Tree extends BaseEntity {
     /**
      * 树的编号
      */
-    @Column(length=32)
+    @Column(length = 32)
     private String treeId;
     /**
      * 树种
      */
-    @Column(length=32, nullable=false)
+    @Column(length = 32, nullable = false)
     private String species;
     /**
      * 高度 厘米
      */
-    @Column(nullable=false)
+    @Column(nullable = false)
     private Double height;
     /**
      * 胸径 厘米
      */
-    @Column(nullable=false)
+    @Column(nullable = false)
     private Double dbh;
     /**
      * 冠幅 厘米
      */
-    @Column(nullable=false)
+    @Column(nullable = false)
     private Double crownWidth;
 
     /**
      * 附加信息(JSON)
      */
-    @Column(length=512)
+    @Column(length = 512)
     private String addition;
 }

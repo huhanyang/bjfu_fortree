@@ -13,12 +13,14 @@ import java.util.Optional;
 
 /**
  * 申请实体的持久接口
+ *
  * @author warthog
  */
 public interface ApplyJobRepository extends JpaRepository<ApplyJob, Long>, JpaSpecificationExecutor<ApplyJob> {
 
     /**
      * 根据id查找并加锁
+     *
      * @param id id
      * @return 申请实体
      */
@@ -28,6 +30,7 @@ public interface ApplyJobRepository extends JpaRepository<ApplyJob, Long>, JpaSp
 
     /**
      * 根据申请人查询
+     *
      * @param applyUser 申请人
      * @return 申请实体列表
      */

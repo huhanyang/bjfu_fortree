@@ -10,12 +10,14 @@ import java.util.Optional;
 
 /**
  * 林地记录的持久接口
+ *
  * @author warthog
  */
 public interface RecordRepository extends JpaRepository<Record, Long> {
 
     /**
      * 根据id查找林地记录实体并加锁
+     *
      * @param id id
      * @return 林地记录实体
      */

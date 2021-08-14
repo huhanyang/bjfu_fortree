@@ -1,6 +1,5 @@
 package com.bjfu.fortree.pojo.vo;
 
-import com.bjfu.fortree.pojo.dto.RecordDTO;
 import com.bjfu.fortree.pojo.dto.TreeDTO;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
@@ -10,13 +9,6 @@ import java.util.Optional;
 
 @Data
 public class TreeVO {
-
-    public TreeVO(TreeDTO treeDTO) {
-        if(treeDTO != null) {
-            BeanUtils.copyProperties(treeDTO ,this);
-            this.record = Optional.ofNullable(treeDTO.getRecord()).map(RecordVO::new).orElse(null);
-        }
-    }
 
     /**
      * 主键
@@ -58,5 +50,11 @@ public class TreeVO {
      * 附加信息(JSON)
      */
     private String addition;
+    public TreeVO(TreeDTO treeDTO) {
+        if (treeDTO != null) {
+            BeanUtils.copyProperties(treeDTO, this);
+            this.record = Optional.ofNullable(treeDTO.getRecord()).map(RecordVO::new).orElse(null);
+        }
+    }
 
 }

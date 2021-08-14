@@ -10,6 +10,7 @@ import javax.validation.constraints.NotNull;
 
 /**
  * 编辑林地信息请求
+ *
  * @author warthog
  */
 @Data
@@ -19,6 +20,11 @@ public class EditWoodlandRequest {
      */
     @NotNull(message = "林地的id不能为空")
     Long woodlandId;
+    /**
+     * 样地中心经纬度
+     */
+    @NotNull(message = "样地中心位置经维度不能为空")
+    G2dPoint position;
     /**
      * 样地名称
      */
@@ -31,11 +37,6 @@ public class EditWoodlandRequest {
     @NotBlank(message = "样地地址不能为空")
     @Length(min = 1, max = 32, message = "样地地址长度1-32个字符")
     private String address;
-    /**
-     * 样地中心经纬度
-     */
-    @NotNull(message = "样地中心位置经维度不能为空")
-    G2dPoint position;
     /**
      * 国家
      */

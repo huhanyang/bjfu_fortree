@@ -1,8 +1,8 @@
 package com.bjfu.fortree.pojo.dto;
 
-import com.bjfu.fortree.pojo.entity.ApplyJob;
 import com.bjfu.fortree.enums.entity.ApplyJobStateEnum;
 import com.bjfu.fortree.enums.entity.ApplyJobTypeEnum;
+import com.bjfu.fortree.pojo.entity.ApplyJob;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
@@ -11,24 +11,6 @@ import java.util.Optional;
 
 @Data
 public class ApplyJobDTO {
-
-    public ApplyJobDTO(ApplyJob applyJob, Boolean needApplyUser, Boolean needUploadFile, Boolean needDownloadFile, Boolean needOperateUser) {
-        if(applyJob != null) {
-            BeanUtils.copyProperties(applyJob, this, "applyUser", "uploadFile", "downloadFile", "operateUser");
-            if(needApplyUser) {
-                this.applyUser = new UserDTO(applyJob.getApplyUser(), false, false, false, false);
-            }
-            if(needUploadFile) {
-                this.uploadFile = Optional.ofNullable(applyJob.getUploadFile()).map(OssFileDTO::new).orElse(null);
-            }
-            if(needDownloadFile) {
-                this.downloadFile = Optional.ofNullable(applyJob.getDownloadFile()).map(OssFileDTO::new).orElse(null);
-            }
-            if(needOperateUser) {
-                this.operateUser = new UserDTO(applyJob.getOperateUser(), false, false, false, false);
-            }
-        }
-    }
 
     /**
      * 主键
@@ -46,7 +28,6 @@ public class ApplyJobDTO {
      * 申请人
      */
     private UserDTO applyUser;
-
     /**
      * 申请类型
      */
@@ -67,7 +48,6 @@ public class ApplyJobDTO {
      * 申请状态
      */
     private ApplyJobStateEnum state;
-
     /**
      * 状态变更操作人
      */
@@ -80,4 +60,21 @@ public class ApplyJobDTO {
      * 状态变更时间
      */
     private Date operateTime;
+    public ApplyJobDTO(ApplyJob applyJob, Boolean needApplyUser, Boolean needUploadFile, Boolean needDownloadFile, Boolean needOperateUser) {
+        if (applyJob != null) {
+            BeanUtils.copyProperties(applyJob, this, "applyUser", "uploadFile", "downloadFile", "operateUser");
+            if (needApplyUser) {
+                this.applyUser = new UserDTO(applyJob.getApplyUser(), false, false, false, false);
+            }
+            if (needUploadFile) {
+                this.uploadFile = Optional.ofNullable(applyJob.getUploadFile()).map(OssFileDTO::new).orElse(null);
+            }
+            if (needDownloadFile) {
+                this.downloadFile = Optional.ofNullable(applyJob.getDownloadFile()).map(OssFileDTO::new).orElse(null);
+            }
+            if (needOperateUser) {
+                this.operateUser = new UserDTO(applyJob.getOperateUser(), false, false, false, false);
+            }
+        }
+    }
 }

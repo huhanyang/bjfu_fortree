@@ -9,6 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * spring mvc配置类
+ *
  * @author warthog
  */
 @Configuration

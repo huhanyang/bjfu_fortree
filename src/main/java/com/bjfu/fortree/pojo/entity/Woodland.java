@@ -1,8 +1,5 @@
 package com.bjfu.fortree.pojo.entity;
 
-import com.bjfu.fortree.pojo.entity.BaseEntity;
-import com.bjfu.fortree.pojo.entity.Record;
-import com.bjfu.fortree.pojo.entity.User;
 import com.bjfu.fortree.enums.entity.WoodlandShapeEnum;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,6 +12,7 @@ import java.util.List;
 
 /**
  * 林地实体类
+ *
  * @author warthog
  */
 @Getter
@@ -25,7 +23,7 @@ public class Woodland extends BaseEntity {
     /**
      * 样地名称
      */
-    @Column(length=32, nullable=false)
+    @Column(length = 32, nullable = false)
     private String name;
     /**
      * 创建人
@@ -35,48 +33,48 @@ public class Woodland extends BaseEntity {
     /**
      * 样地地址
      */
-    @Column(length=64, nullable=false)
+    @Column(length = 64, nullable = false)
     private String address;
     /**
      * 样地中心经纬度
      */
-    @Column(nullable=false)
+    @Column(nullable = false)
     private Point<G2D> position;
     /**
      * 国家
      */
-    @Column(length=32, nullable=false)
+    @Column(length = 32, nullable = false)
     private String country;
     /**
      * 省/州
      */
-    @Column(length=32, nullable=false)
+    @Column(length = 32, nullable = false)
     private String province;
     /**
      * 城市
      */
-    @Column(length=32, nullable=false)
+    @Column(length = 32, nullable = false)
     private String city;
     /**
      * 形状
      */
     @Enumerated
-    @Column(nullable=false)
+    @Column(nullable = false)
     private WoodlandShapeEnum shape;
     /**
      * 长度 米
      */
-    @Column(nullable=false)
+    @Column(nullable = false)
     private Double length;
     /**
      * 宽度 米
      */
-    @Column(nullable=false)
+    @Column(nullable = false)
     private Double width;
     /**
      * 附加信息(JSON)
      */
-    @Column(length=512)
+    @Column(length = 512)
     private String addition;
     /**
      * 最新记录

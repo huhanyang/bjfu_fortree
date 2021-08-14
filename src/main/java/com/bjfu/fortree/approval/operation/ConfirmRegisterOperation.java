@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * 激活账号
+ *
  * @author warthog
  */
 @Component
@@ -25,7 +26,7 @@ public class ConfirmRegisterOperation implements ApprovedOperation {
         String account = applyJob.getApplyParam();
         User user = userRepository.findByAccountForUpdate(account)
                 .orElseThrow(() -> new BizException(ResultEnum.ACCOUNT_NOT_EXIST_OR_PASSWORD_WRONG));
-        if(!user.getState().equals(UserStateEnum.UNACTIVE)) {
+        if (!user.getState().equals(UserStateEnum.UNACTIVE)) {
             throw new BizException(ResultEnum.ACCOUNT_NOT_UNACTIVE);
         }
         user.setState(UserStateEnum.ACTIVE);

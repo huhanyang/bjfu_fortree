@@ -1,18 +1,18 @@
 package com.bjfu.fortree.controller;
 
-import com.bjfu.fortree.exception.SystemWrongException;
-import com.bjfu.fortree.pojo.dto.ApplyJobDTO;
-import com.bjfu.fortree.pojo.dto.UserDTO;
-import com.bjfu.fortree.pojo.dto.TreeDTO;
-import com.bjfu.fortree.pojo.dto.WoodlandDTO;
 import com.bjfu.fortree.enums.ResultEnum;
+import com.bjfu.fortree.exception.SystemWrongException;
+import com.bjfu.fortree.pojo.BaseResult;
+import com.bjfu.fortree.pojo.dto.ApplyJobDTO;
+import com.bjfu.fortree.pojo.dto.TreeDTO;
+import com.bjfu.fortree.pojo.dto.UserDTO;
+import com.bjfu.fortree.pojo.dto.WoodlandDTO;
 import com.bjfu.fortree.pojo.request.woodland.*;
 import com.bjfu.fortree.pojo.vo.ApplyJobVO;
 import com.bjfu.fortree.pojo.vo.TreeVO;
 import com.bjfu.fortree.pojo.vo.WoodlandVO;
 import com.bjfu.fortree.security.annotation.RequireLogin;
 import com.bjfu.fortree.service.WoodlandService;
-import com.bjfu.fortree.pojo.BaseResult;
 import com.bjfu.fortree.util.UserInfoContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 /**
  * 林地相关操作接口
+ *
  * @author warthog
  */
 @Validated
@@ -119,7 +120,7 @@ public class WoodlandController {
     @RequireLogin
     @PostMapping("/getWoodlands")
     public BaseResult<Page<WoodlandVO>> getWoodlands(@Validated @RequestBody GetWoodlandsRequest request) {
-        Page<WoodlandDTO> woodlandDTOS= woodlandService.getWoodlands(request);
+        Page<WoodlandDTO> woodlandDTOS = woodlandService.getWoodlands(request);
         return new BaseResult<>(ResultEnum.SUCCESS, woodlandDTOS.map(WoodlandVO::new));
     }
 
@@ -142,7 +143,7 @@ public class WoodlandController {
     public BaseResult<Page<WoodlandVO>> getWoodlandsByCreator(@Validated @RequestBody GetWoodlandsRequest request) {
         UserDTO userInfo = UserInfoContextUtil.getUserInfo()
                 .orElseThrow(() -> new SystemWrongException(ResultEnum.USER_INFO_CONTEXT_WRONG));
-        Page<WoodlandDTO> woodlandDTOS= woodlandService.getWoodlandsByCreator(userInfo.getAccount(), request);
+        Page<WoodlandDTO> woodlandDTOS = woodlandService.getWoodlandsByCreator(userInfo.getAccount(), request);
         return new BaseResult<>(ResultEnum.SUCCESS, woodlandDTOS.map(WoodlandVO::new));
     }
 

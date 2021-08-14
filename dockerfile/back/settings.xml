@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<settings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns="http://maven.apache.org/SETTINGS/1.0.0"
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
-  <localRepository>/usr/share/repository</localRepository>
-  <pluginGroups/>
-  <proxies/>
-  <servers/>
-  <mirrors>
-    <mirror>
-      <id>alimaven</id>
-      <mirrorOf>*</mirrorOf>
-      <name>aliyun maven</name>
-      <url>http://maven.aliyun.com/nexus/content/repositories/central/</url>
-    </mirror>
-  </mirrors>
-  <profiles/>
+    <localRepository>/usr/share/repository</localRepository>
+    <pluginGroups/>
+    <proxies/>
+    <servers/>
+    <mirrors>
+        <mirror>
+            <id>alimaven</id>
+            <mirrorOf>*</mirrorOf>
+            <name>aliyun maven</name>
+            <url>http://maven.aliyun.com/nexus/content/repositories/central/</url>
+        </mirror>
+    </mirrors>
+    <profiles/>
 </settings>

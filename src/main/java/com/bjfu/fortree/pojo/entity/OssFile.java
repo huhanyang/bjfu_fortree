@@ -10,6 +10,7 @@ import java.util.Date;
 
 /**
  * 文件实体类
+ *
  * @author warthog
  */
 @Getter

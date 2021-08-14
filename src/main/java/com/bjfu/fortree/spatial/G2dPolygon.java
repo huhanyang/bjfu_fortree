@@ -14,12 +14,20 @@ import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 
 /**
  * 2维的多边形
+ *
  * @author warthog
  */
 @Data
 public class G2dPolygon {
 
-    public G2dPolygon() {}
+    /**
+     * 点集合
+     */
+    @NotEmpty(message = "点集合不能为空")
+    private List<G2dPoint> g2dPointList;
+
+    public G2dPolygon() {
+    }
 
     public G2dPolygon(List<G2dPoint> g2dPointList) {
         this.g2dPointList = g2dPointList;
@@ -32,12 +40,6 @@ public class G2dPolygon {
                 .ifPresent(g2dLinearRing -> g2dLinearRing.getPositions().forEach(g2D -> list.add(new G2dPoint(g2D.getLon(), g2D.getLat()))));
         this.g2dPointList = list;
     }
-
-    /**
-     * 点集合
-     */
-    @NotEmpty(message = "点集合不能为空")
-    private List<G2dPoint> g2dPointList;
 
     public static Polygon<G2D> convertToGeom(G2dPolygon g2dPolygon) {
         G2D[] g2dS = g2dPolygon.getG2dPointList()

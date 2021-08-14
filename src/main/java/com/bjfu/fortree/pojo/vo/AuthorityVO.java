@@ -11,13 +11,6 @@ import java.util.Optional;
 @Data
 public class AuthorityVO {
 
-    public AuthorityVO(AuthorityDTO authorityDTO) {
-        if(authorityDTO != null) {
-            BeanUtils.copyProperties(authorityDTO, this);
-            this.user = Optional.ofNullable(authorityDTO.getUser()).map(UserVO::new).orElse(null);
-        }
-    }
-
     /**
      * 主键
      */
@@ -38,4 +31,10 @@ public class AuthorityVO {
      * 权限类型
      */
     private AuthorityTypeEnum type;
+    public AuthorityVO(AuthorityDTO authorityDTO) {
+        if (authorityDTO != null) {
+            BeanUtils.copyProperties(authorityDTO, this);
+            this.user = Optional.ofNullable(authorityDTO.getUser()).map(UserVO::new).orElse(null);
+        }
+    }
 }

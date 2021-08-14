@@ -7,15 +7,15 @@ import com.alibaba.excel.write.metadata.WriteTable;
 import com.alibaba.fastjson.JSONObject;
 import com.bjfu.fortree.approval.ApprovedOperation;
 import com.bjfu.fortree.config.MinioConfig;
-import com.bjfu.fortree.pojo.entity.ApplyJob;
-import com.bjfu.fortree.pojo.entity.OssFile;
-import com.bjfu.fortree.pojo.entity.User;
-import com.bjfu.fortree.pojo.entity.Woodland;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.excel.head.RecordInfoHead;
 import com.bjfu.fortree.excel.head.TreeInfoHead;
 import com.bjfu.fortree.excel.head.WoodlandInfoHead;
 import com.bjfu.fortree.exception.ExportExcelException;
+import com.bjfu.fortree.pojo.entity.ApplyJob;
+import com.bjfu.fortree.pojo.entity.OssFile;
+import com.bjfu.fortree.pojo.entity.User;
+import com.bjfu.fortree.pojo.entity.Woodland;
 import com.bjfu.fortree.repository.file.OssFileRepository;
 import com.bjfu.fortree.repository.woodland.WoodlandRepository;
 import com.bjfu.fortree.service.OssService;
@@ -52,7 +52,7 @@ public class ExportWoodlandsInfoOperation implements ApprovedOperation {
         List<Long> woodlandIds = JSONObject.parseArray(applyJob.getApplyParam(), Long.class);
         List<Woodland> woodlands = woodlandRepository.findAllById(woodlandIds);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try{
+        try {
             ExcelWriter excelWriter = EasyExcel.write(outputStream).autoCloseStream(false).build();
             // 写入林地信息sheet
             WriteSheet woodlandSheet = EasyExcel.writerSheet("林地信息").build();

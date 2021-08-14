@@ -5,6 +5,7 @@ import lombok.Getter;
 
 /**
  * 应用异常抽象类
+ *
  * @author warthog
  */
 @Getter

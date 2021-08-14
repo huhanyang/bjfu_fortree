@@ -10,10 +10,6 @@ import org.springframework.beans.BeanUtils;
  */
 @Data
 public class TreeInfoHead {
-    public TreeInfoHead() {}
-    public TreeInfoHead(Tree tree) {
-        BeanUtils.copyProperties(tree, this);
-    }
     /**
      * 树木编号
      */
@@ -44,4 +40,9 @@ public class TreeInfoHead {
      */
     @ExcelProperty("附加信息")
     private String addition;
+    public TreeInfoHead() {
+    }
+    public TreeInfoHead(Tree tree) {
+        BeanUtils.copyProperties(tree, this);
+    }
 }

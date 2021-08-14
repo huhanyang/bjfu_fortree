@@ -1,8 +1,7 @@
 package com.bjfu.fortree.pojo.dto;
 
-import com.bjfu.fortree.pojo.entity.Authority;
 import com.bjfu.fortree.enums.entity.AuthorityTypeEnum;
-import com.bjfu.fortree.pojo.entity.User;
+import com.bjfu.fortree.pojo.entity.Authority;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
@@ -10,15 +9,6 @@ import java.util.Date;
 
 @Data
 public class AuthorityDTO {
-
-    public AuthorityDTO(Authority authority, Boolean needUser) {
-        if(authority != null) {
-            BeanUtils.copyProperties(authority, this, "user");
-            if(needUser) {
-                this.user = new UserDTO(authority.getUser(), false, false, false, false);
-            }
-        }
-    }
 
     /**
      * 主键
@@ -40,4 +30,12 @@ public class AuthorityDTO {
      * 权限类型
      */
     private AuthorityTypeEnum type;
+    public AuthorityDTO(Authority authority, Boolean needUser) {
+        if (authority != null) {
+            BeanUtils.copyProperties(authority, this, "user");
+            if (needUser) {
+                this.user = new UserDTO(authority.getUser(), false, false, false, false);
+            }
+        }
+    }
 }

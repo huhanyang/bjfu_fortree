@@ -4,6 +4,7 @@ import lombok.Getter;
 
 /**
  * session中key的枚举类
+ *
  * @author warthog
  */
 

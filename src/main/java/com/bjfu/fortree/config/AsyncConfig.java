@@ -7,6 +7,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * 异步任务配置类
+ *
  * @author warthog
  */
 @Configuration

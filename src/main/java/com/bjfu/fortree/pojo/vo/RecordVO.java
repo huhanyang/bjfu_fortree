@@ -2,9 +2,6 @@ package com.bjfu.fortree.pojo.vo;
 
 import com.bjfu.fortree.enums.entity.RecordTypeEnum;
 import com.bjfu.fortree.pojo.dto.RecordDTO;
-import com.bjfu.fortree.pojo.dto.TreeDTO;
-import com.bjfu.fortree.pojo.dto.UserDTO;
-import com.bjfu.fortree.pojo.dto.WoodlandDTO;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
@@ -16,17 +13,6 @@ import java.util.stream.Collectors;
 
 @Data
 public class RecordVO {
-
-    public RecordVO(RecordDTO recordDTO) {
-        if(recordDTO != null) {
-            BeanUtils.copyProperties(recordDTO, this);
-            this.woodland = Optional.ofNullable(recordDTO.getWoodland()).map(WoodlandVO::new).orElse(null);
-            this.creator = Optional.ofNullable(recordDTO.getCreator()).map(UserVO::new).orElse(null);
-            this.trees = Optional.ofNullable(recordDTO.getTrees())
-                    .map(treeDTOS -> treeDTOS.stream().map(TreeVO::new).collect(Collectors.toList()))
-                    .orElse(null);
-        }
-    }
 
     /**
      * 主键
@@ -80,9 +66,19 @@ public class RecordVO {
      * 类型
      */
     private RecordTypeEnum type;
-
     /**
      * 此记录下的单个树记录
      */
     private List<TreeVO> trees = new ArrayList<>();
+
+    public RecordVO(RecordDTO recordDTO) {
+        if (recordDTO != null) {
+            BeanUtils.copyProperties(recordDTO, this);
+            this.woodland = Optional.ofNullable(recordDTO.getWoodland()).map(WoodlandVO::new).orElse(null);
+            this.creator = Optional.ofNullable(recordDTO.getCreator()).map(UserVO::new).orElse(null);
+            this.trees = Optional.ofNullable(recordDTO.getTrees())
+                    .map(treeDTOS -> treeDTOS.stream().map(TreeVO::new).collect(Collectors.toList()))
+                    .orElse(null);
+        }
+    }
 }

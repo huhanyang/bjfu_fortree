@@ -17,19 +17,6 @@ import java.util.stream.Collectors;
 @Data
 public class WoodlandDTO {
 
-    public WoodlandDTO(Woodland woodland, Boolean needCreator, Boolean needRecords) {
-        if(woodland != null) {
-            BeanUtils.copyProperties(woodland, this, "creator", "position", "records");
-            this.setPosition(new G2dPoint(woodland.getPosition()));
-            if(needCreator) {
-                this.setCreator(new UserDTO(woodland.getCreator(), false, false, false, false));
-            }
-            if(needRecords) {
-                this.setRecords(woodland.getRecords().stream().map(record -> new RecordDTO(record, false, true, false)).collect(Collectors.toList()));
-            }
-        }
-    }
-
     /**
      * 主键
      */
@@ -86,9 +73,21 @@ public class WoodlandDTO {
      * 附加信息(JSON)
      */
     private String addition;
-
     /**
      * 创建的记录
      */
     private List<RecordDTO> records = new ArrayList<>();
+
+    public WoodlandDTO(Woodland woodland, Boolean needCreator, Boolean needRecords) {
+        if (woodland != null) {
+            BeanUtils.copyProperties(woodland, this, "creator", "position", "records");
+            this.setPosition(new G2dPoint(woodland.getPosition()));
+            if (needCreator) {
+                this.setCreator(new UserDTO(woodland.getCreator(), false, false, false, false));
+            }
+            if (needRecords) {
+                this.setRecords(woodland.getRecords().stream().map(record -> new RecordDTO(record, false, true, false)).collect(Collectors.toList()));
+            }
+        }
+    }
 }

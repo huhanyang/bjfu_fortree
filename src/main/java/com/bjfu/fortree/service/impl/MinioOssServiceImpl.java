@@ -16,6 +16,7 @@ import java.io.InputStream;
 
 /**
  * 基于开源的minio的oss实现类
+ *
  * @author warthog
  */
 @Service
@@ -36,7 +37,7 @@ public class MinioOssServiceImpl implements OssService {
 
     @Override
     public void putObject(String bucketName, String objectName, InputStream stream) {
-        try{
+        try {
             PutObjectArgs putObjectArgs = PutObjectArgs.builder()
                     .bucket(bucketName)
                     .object(objectName)
@@ -78,7 +79,7 @@ public class MinioOssServiceImpl implements OssService {
                     .expiry(expires)
                     .build();
             return minioClient.getPresignedObjectUrl(getPresignedObjectUrlArgs);
-        } catch(Exception exception) {
+        } catch (Exception exception) {
             log.error("获取文件上传链接失败：", exception);
             throw new OssException(ResultEnum.FILE_UPLOAD_FAILED);
         }
@@ -99,7 +100,7 @@ public class MinioOssServiceImpl implements OssService {
                     .expiry(expires)
                     .build();
             return minioClient.getPresignedObjectUrl(getPresignedObjectUrlArgs);
-        } catch(Exception exception) {
+        } catch (Exception exception) {
             log.error("获取文件下载链接失败：", exception);
             throw new OssException(ResultEnum.FILE_DOWNLOAD_FAILED);
         }

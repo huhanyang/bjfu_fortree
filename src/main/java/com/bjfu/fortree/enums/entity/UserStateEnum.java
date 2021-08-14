@@ -4,6 +4,7 @@ import lombok.Getter;
 
 /**
  * 用户状态枚举类
+ *
  * @author warthog
  */
 @Getter

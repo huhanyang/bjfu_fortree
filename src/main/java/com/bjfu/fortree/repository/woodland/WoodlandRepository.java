@@ -15,12 +15,14 @@ import java.util.Optional;
 
 /**
  * 林地的持久接口
+ *
  * @author warthog
  */
 public interface WoodlandRepository extends JpaRepository<Woodland, Long>, JpaSpecificationExecutor<Woodland> {
 
     /**
      * 根据id查找林地实体
+     *
      * @param id 林地id
      * @return 林地实体
      */
@@ -30,6 +32,7 @@ public interface WoodlandRepository extends JpaRepository<Woodland, Long>, JpaSp
 
     /**
      * 根据创建人查找创建的林地
+     *
      * @param creator 创建人
      * @return 林地实体列表
      */
@@ -37,6 +40,7 @@ public interface WoodlandRepository extends JpaRepository<Woodland, Long>, JpaSp
 
     /**
      * 查询范围内的林地列表
+     *
      * @param polygon 矩形范围
      * @return 林地列表
      */

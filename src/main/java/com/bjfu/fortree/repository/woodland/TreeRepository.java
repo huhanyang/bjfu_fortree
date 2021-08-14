@@ -8,12 +8,14 @@ import java.util.List;
 
 /**
  * 树木的持久接口
+ *
  * @author warthog
  */
 public interface TreeRepository extends JpaRepository<Tree, Long>, JpaSpecificationExecutor<Tree> {
 
     /**
      * 根据id集合删除树木实体
+     *
      * @param ids 要删除的id集合
      */
     void deleteByIdIn(List<Long> ids);

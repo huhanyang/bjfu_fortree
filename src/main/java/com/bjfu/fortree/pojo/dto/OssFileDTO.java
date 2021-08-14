@@ -9,11 +9,6 @@ import java.util.Date;
 @Data
 public class OssFileDTO {
 
-    public OssFileDTO(OssFile ossFile) {
-        if(ossFile!=null) {
-            BeanUtils.copyProperties(ossFile, this);
-        }
-    }
     /**
      * 主键
      */
@@ -30,7 +25,6 @@ public class OssFileDTO {
      * 文件名
      */
     private String fileName;
-
     /**
      * 文件所在oss里的bucket
      */
@@ -47,4 +41,9 @@ public class OssFileDTO {
      * 文件下载URL
      */
     private String url;
+    public OssFileDTO(OssFile ossFile) {
+        if (ossFile != null) {
+            BeanUtils.copyProperties(ossFile, this);
+        }
+    }
 }

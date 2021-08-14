@@ -15,7 +15,9 @@
             <!-- %msg：日志打印详情 -->
             <!-- %n:换行符 -->
             <!-- %highlight():转换说明符以粗体红色显示其级别为ERROR的事件，红色为WARN，BLUE为INFO，以及其他级别的默认颜色。 -->
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) --- [%15.15(%thread)] %cyan(%-40.40(%logger{40})) : %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) --- [%15.15(%thread)] %cyan(%-40.40(%logger{40}))
+                : %msg%n
+            </pattern>
             <!-- 控制台也要使用UTF-8，不要使用GBK，否则会中文乱码 -->
             <charset>UTF-8</charset>
         </encoder>
@@ -105,7 +107,7 @@
     通过将记录器的additivity标志设置为false，可以覆盖此默认行为，以便不再添加appender累积-->
     <!-- configuration中最多允许一个root，别的logger如果没有设置级别则从父级别root继承 -->
     <root level="INFO">
-        <appender-ref ref="STDOUT" />
+        <appender-ref ref="STDOUT"/>
     </root>
 
     <!-- 指定项目中某个包，当有日志操作行为时的日志记录级别 -->
@@ -114,8 +116,8 @@
     注意：如果不加 additivity="false" 则此logger会将输出转发到自身以及祖先的logger中，就会出现日志文件中sql重复打印-->
     <!-- additivity=false代表禁止默认累计的行为，即com.atomikos中的日志只会记录到日志文件中，不会输出层次级别更高的任何appender-->
     <logger name="com.bjfu.exam" level="INFO" additivity="false">
-        <appender-ref ref="info_log" />
-        <appender-ref ref="error_log" />
+        <appender-ref ref="info_log"/>
+        <appender-ref ref="error_log"/>
     </logger>
 
 </configuration>

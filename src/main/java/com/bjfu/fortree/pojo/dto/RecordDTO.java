@@ -16,21 +16,6 @@ import java.util.stream.Collectors;
 @Data
 public class RecordDTO {
 
-    public RecordDTO(Record record, Boolean needWoodland, Boolean needCreator, Boolean needTrees) {
-        if(record != null) {
-            BeanUtils.copyProperties(record, this, "woodland", "creator", "trees");
-            if(needWoodland) {
-                this.woodland = new WoodlandDTO(record.getWoodland(), true, false);
-            }
-            if(needCreator) {
-                this.creator = new UserDTO(record.getCreator(), false, false, false, false);
-            }
-            if(needTrees) {
-                this.trees = record.getTrees().stream().map(tree -> new TreeDTO(tree, false)).collect(Collectors.toList());
-            }
-        }
-    }
-
     /**
      * 主键
      */
@@ -87,4 +72,18 @@ public class RecordDTO {
      * 此记录下的单个树记录
      */
     private List<TreeDTO> trees = new ArrayList<>();
+    public RecordDTO(Record record, Boolean needWoodland, Boolean needCreator, Boolean needTrees) {
+        if (record != null) {
+            BeanUtils.copyProperties(record, this, "woodland", "creator", "trees");
+            if (needWoodland) {
+                this.woodland = new WoodlandDTO(record.getWoodland(), true, false);
+            }
+            if (needCreator) {
+                this.creator = new UserDTO(record.getCreator(), false, false, false, false);
+            }
+            if (needTrees) {
+                this.trees = record.getTrees().stream().map(tree -> new TreeDTO(tree, false)).collect(Collectors.toList());
+            }
+        }
+    }
 }

@@ -12,20 +12,6 @@ import java.util.Date;
  */
 @Data
 public class WoodlandInfoHead {
-    public WoodlandInfoHead() {}
-    public WoodlandInfoHead(Woodland woodland) {
-        BeanUtils.copyProperties(woodland, this);
-        this.creatorAccount = woodland.getCreator().getAccount();
-        this.creatorName = woodland.getCreator().getName();
-        this.longitude = woodland.getPosition().getPosition().getLon();
-        this.latitude = woodland.getPosition().getPosition().getLat();
-        this.shape = woodland.getShape().getMsg();
-        woodland.getRecords().stream().findFirst()
-                .ifPresent(record -> {
-                    BeanUtils.copyProperties(record, this,
-                            "addition", "creatorAccount", "creatorName");
-                });
-    }
     /**
      * 样地名称
      */
@@ -91,7 +77,6 @@ public class WoodlandInfoHead {
      */
     @ExcelProperty("附加信息")
     private String addition;
-
     /**
      * 树木总数
      */
@@ -117,4 +102,19 @@ public class WoodlandInfoHead {
      */
     @ExcelProperty({"最新记录", "测量时间"})
     private Date measureTime;
+    public WoodlandInfoHead() {
+    }
+    public WoodlandInfoHead(Woodland woodland) {
+        BeanUtils.copyProperties(woodland, this);
+        this.creatorAccount = woodland.getCreator().getAccount();
+        this.creatorName = woodland.getCreator().getName();
+        this.longitude = woodland.getPosition().getPosition().getLon();
+        this.latitude = woodland.getPosition().getPosition().getLat();
+        this.shape = woodland.getShape().getMsg();
+        woodland.getRecords().stream().findFirst()
+                .ifPresent(record -> {
+                    BeanUtils.copyProperties(record, this,
+                            "addition", "creatorAccount", "creatorName");
+                });
+    }
 }

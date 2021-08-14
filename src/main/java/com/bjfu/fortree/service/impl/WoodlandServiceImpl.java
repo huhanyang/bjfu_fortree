@@ -3,21 +3,17 @@ package com.bjfu.fortree.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.bjfu.fortree.approval.ApprovedOperationDispatch;
 import com.bjfu.fortree.config.MinioConfig;
-import com.bjfu.fortree.pojo.dto.ApplyJobDTO;
-import com.bjfu.fortree.pojo.dto.TreeDTO;
-import com.bjfu.fortree.pojo.dto.WoodlandDTO;
-import com.bjfu.fortree.pojo.entity.ApplyJob;
-import com.bjfu.fortree.pojo.entity.OssFile;
-import com.bjfu.fortree.pojo.entity.User;
-import com.bjfu.fortree.pojo.entity.Record;
-import com.bjfu.fortree.pojo.entity.Tree;
-import com.bjfu.fortree.pojo.entity.Woodland;
 import com.bjfu.fortree.enums.ResultEnum;
 import com.bjfu.fortree.enums.entity.ApplyJobTypeEnum;
 import com.bjfu.fortree.enums.entity.AuthorityTypeEnum;
 import com.bjfu.fortree.exception.SystemWrongException;
 import com.bjfu.fortree.exception.WrongParamException;
+import com.bjfu.fortree.pojo.dto.ApplyJobDTO;
+import com.bjfu.fortree.pojo.dto.TreeDTO;
+import com.bjfu.fortree.pojo.dto.WoodlandDTO;
+import com.bjfu.fortree.pojo.entity.*;
 import com.bjfu.fortree.pojo.request.BasePageAndSorterRequest;
+import com.bjfu.fortree.pojo.request.woodland.*;
 import com.bjfu.fortree.repository.file.OssFileRepository;
 import com.bjfu.fortree.repository.job.ApplyJobRepository;
 import com.bjfu.fortree.repository.user.AuthorityRepository;
@@ -25,7 +21,6 @@ import com.bjfu.fortree.repository.user.UserRepository;
 import com.bjfu.fortree.repository.woodland.RecordRepository;
 import com.bjfu.fortree.repository.woodland.TreeRepository;
 import com.bjfu.fortree.repository.woodland.WoodlandRepository;
-import com.bjfu.fortree.pojo.request.woodland.*;
 import com.bjfu.fortree.service.OssService;
 import com.bjfu.fortree.service.WoodlandService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +29,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.criteria.Predicate;
@@ -44,6 +38,35 @@ import java.util.stream.Collectors;
 
 @Service
 public class WoodlandServiceImpl implements WoodlandService {
+
+    /**
+     * 林地实体属性顺序
+     */
+    private static final Map<String, Integer> WOODLAND_FIELD_ORDER_WEIGHT = new HashMap<>();
+    /**
+     * 树木实体属性顺序
+     */
+    private static final Map<String, Integer> TREE_FIELD_ORDER_WEIGHT = new HashMap<>();
+
+    static {
+        WOODLAND_FIELD_ORDER_WEIGHT.put("name", 1);
+        WOODLAND_FIELD_ORDER_WEIGHT.put("country", 2);
+        WOODLAND_FIELD_ORDER_WEIGHT.put("province", 3);
+        WOODLAND_FIELD_ORDER_WEIGHT.put("city", 4);
+        WOODLAND_FIELD_ORDER_WEIGHT.put("shape", 5);
+        WOODLAND_FIELD_ORDER_WEIGHT.put("length", 6);
+        WOODLAND_FIELD_ORDER_WEIGHT.put("width", 7);
+        WOODLAND_FIELD_ORDER_WEIGHT.put("createdTime", 8);
+
+    }
+
+    static {
+        TREE_FIELD_ORDER_WEIGHT.put("treeId", 1);
+        TREE_FIELD_ORDER_WEIGHT.put("species", 2);
+        TREE_FIELD_ORDER_WEIGHT.put("height", 3);
+        TREE_FIELD_ORDER_WEIGHT.put("dbh", 4);
+        TREE_FIELD_ORDER_WEIGHT.put("crownWidth", 5);
+    }
 
     @Autowired
     private UserRepository userRepository;
@@ -73,7 +96,7 @@ public class WoodlandServiceImpl implements WoodlandService {
         // 请求参数序列化
         String applyParam = JSONObject.toJSONString(request);
         // 判断是否存在免审批权限
-        if(authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.CREATE_ANY_WOODLAND)) {
+        if (authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.CREATE_ANY_WOODLAND)) {
             // 生成状态为通过的申请实体
             ApplyJob passedApply = ApplyJob.createPassedApply(user, ApplyJobTypeEnum.CREATE_WOODLAND, applyParam);
             // 申请实体落库
@@ -102,7 +125,7 @@ public class WoodlandServiceImpl implements WoodlandService {
         // 请求参数序列化
         String applyParam = JSONObject.toJSONString(request);
         // 判断是否存在免审批权限 或 是否为林地创建人
-        if(authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.ADD_RECORD_IN_ANY_WOODLAND) ||
+        if (authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.ADD_RECORD_IN_ANY_WOODLAND) ||
                 woodland.getCreator().getId().equals(user.getId())) {
             // 生成状态为通过的申请实体
             ApplyJob passedApply = ApplyJob.createPassedApply(user, ApplyJobTypeEnum.ADD_RECORD_IN_WOODLAND, applyParam);
@@ -110,7 +133,7 @@ public class WoodlandServiceImpl implements WoodlandService {
             applyJobRepository.save(passedApply);
             // 执行审批通过后的操作
             approvedOperationDispatch.dispatch(passedApply);
-            return new ApplyJobDTO(passedApply, false, false, false ,false);
+            return new ApplyJobDTO(passedApply, false, false, false, false);
         } else {
             // 生成状态为申请中的申请实体
             ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.ADD_RECORD_IN_WOODLAND, applyParam);
@@ -132,7 +155,7 @@ public class WoodlandServiceImpl implements WoodlandService {
         // 请求参数序列化
         String applyParam = JSONObject.toJSONString(request);
         // 判断是否存在免审批权限 或 是否为林地创建人 或 是否为记录创建人
-        if(authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.ADD_TREES_IN_ANY_RECORD) ||
+        if (authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.ADD_TREES_IN_ANY_RECORD) ||
                 record.getWoodland().getCreator().getId().equals(user.getId()) ||
                 record.getCreator().getId().equals(user.getId())) {
             // 生成状态为通过的申请实体
@@ -177,7 +200,7 @@ public class WoodlandServiceImpl implements WoodlandService {
         // 对请求参数中的recordId序列化
         String applyParam = request.getRecordId().toString();
         // 判断是否存在免审批权限 或 是否为林地创建人 或 是否为记录创建人
-        if(authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.ADD_TREES_IN_ANY_RECORD) ||
+        if (authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.ADD_TREES_IN_ANY_RECORD) ||
                 record.getWoodland().getCreator().getId().equals(user.getId()) ||
                 record.getCreator().getId().equals(user.getId())) {
             // 生成状态为通过的申请实体
@@ -212,7 +235,7 @@ public class WoodlandServiceImpl implements WoodlandService {
         // 请求参数序列化
         String applyParam = woodlandId.toString();
         // 判断是否存在免审批权限 或 是否为林地创建人
-        if(authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.DELETE_ANY_WOODLAND) ||
+        if (authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.DELETE_ANY_WOODLAND) ||
                 woodland.getCreator().getId().equals(user.getId())) {
             // 生成状态为通过的申请实体
             ApplyJob passedApply = ApplyJob.createPassedApply(user, ApplyJobTypeEnum.DELETE_WOODLAND, applyParam);
@@ -242,7 +265,7 @@ public class WoodlandServiceImpl implements WoodlandService {
         // 请求参数序列化
         String applyParam = recordId.toString();
         // 判断是否存在免审批权限 或 是否为记录创建人 或 是否为林地创建人
-        if(authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.DELETE_RECORD_IN_ANY_WOODLAND) ||
+        if (authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.DELETE_RECORD_IN_ANY_WOODLAND) ||
                 record.getCreator().getId().equals(user.getId()) ||
                 record.getWoodland().getCreator().getId().equals(user.getId())) {
             // 生成状态为通过的申请实体
@@ -281,7 +304,7 @@ public class WoodlandServiceImpl implements WoodlandService {
         // 请求参数序列化
         String applyParam = JSONObject.toJSONString(request);
         // 判断是否存在免审批权限 或 是否为记录创建人 或 是否为林地创建人
-        if(authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.DELETE_TREES_IN_ANY_RECORD) ||
+        if (authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.DELETE_TREES_IN_ANY_RECORD) ||
                 record.getCreator().getId().equals(user.getId()) ||
                 record.getWoodland().getCreator().getId().equals(user.getId())) {
             // 生成状态为通过的申请实体
@@ -312,7 +335,7 @@ public class WoodlandServiceImpl implements WoodlandService {
         // 请求参数序列化
         String applyParam = JSONObject.toJSONString(request);
         // 判断是否存在免审批权限 或 是否为林地创建人
-        if(woodland.getCreator().getId().equals(user.getId()) ||
+        if (woodland.getCreator().getId().equals(user.getId()) ||
                 authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.EDIT_ANY_WOODLAND)) {
             // 生成状态为通过的申请实体
             ApplyJob passedApply = ApplyJob.createPassedApply(user, ApplyJobTypeEnum.EDIT_WOODLAND, applyParam);
@@ -342,7 +365,7 @@ public class WoodlandServiceImpl implements WoodlandService {
         // 请求参数序列化
         String applyParam = JSONObject.toJSONString(request);
         // 判断是否存在免审批权限 或 是否为记录创建人 或 是否为林地创建人
-        if(record.getCreator().getId().equals(user.getId()) ||
+        if (record.getCreator().getId().equals(user.getId()) ||
                 record.getWoodland().getCreator().getId().equals(user.getId()) ||
                 authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.EDIT_RECORD_IN_ANY_WOODLAND)) {
             // 生成状态为通过的申请实体
@@ -359,22 +382,6 @@ public class WoodlandServiceImpl implements WoodlandService {
             applyJobRepository.save(apply);
             return new ApplyJobDTO(apply, false, false, false, false);
         }
-    }
-
-    /**
-     * 林地实体属性顺序
-     */
-    private static final Map<String, Integer> WOODLAND_FIELD_ORDER_WEIGHT = new HashMap<>();
-    static {
-        WOODLAND_FIELD_ORDER_WEIGHT.put("name", 1);
-        WOODLAND_FIELD_ORDER_WEIGHT.put("country", 2);
-        WOODLAND_FIELD_ORDER_WEIGHT.put("province", 3);
-        WOODLAND_FIELD_ORDER_WEIGHT.put("city", 4);
-        WOODLAND_FIELD_ORDER_WEIGHT.put("shape", 5);
-        WOODLAND_FIELD_ORDER_WEIGHT.put("length", 6);
-        WOODLAND_FIELD_ORDER_WEIGHT.put("width", 7);
-        WOODLAND_FIELD_ORDER_WEIGHT.put("createdTime", 8);
-
     }
 
     @Override
@@ -434,21 +441,21 @@ public class WoodlandServiceImpl implements WoodlandService {
                 predicates.add(cb.like(root.get("city"), "%" + request.getCity() + "%"));
             }
             if (request.getAreaDirection() != null && request.getArea() != null) {
-                if(request.getAreaDirection().equals(GetAllWoodlandsRequest.NumberDirection.MIN)) {
+                if (request.getAreaDirection().equals(GetAllWoodlandsRequest.NumberDirection.MIN)) {
                     predicates.add(cb.greaterThanOrEqualTo(cb.prod(root.get("length"), root.get("width")), request.getArea()));
                 } else {
                     predicates.add(cb.lessThanOrEqualTo(cb.prod(root.get("length"), root.get("width")), request.getArea()));
                 }
             }
             if (request.getTreeCountDirection() != null && request.getTreeCount() != null) {
-                if(request.getTreeCountDirection().equals(GetAllWoodlandsRequest.NumberDirection.MIN)) {
+                if (request.getTreeCountDirection().equals(GetAllWoodlandsRequest.NumberDirection.MIN)) {
                     predicates.add(cb.greaterThanOrEqualTo(root.get("newRecord").get("treeCount"), request.getTreeCount()));
                 } else {
                     predicates.add(cb.lessThanOrEqualTo(root.get("newRecord").get("treeCount"), request.getTreeCount()));
                 }
             }
             if (request.getTreeMeanHeightDirection() != null && request.getTreeMeanHeight() != null) {
-                if(request.getTreeMeanHeightDirection().equals(GetAllWoodlandsRequest.NumberDirection.MIN)) {
+                if (request.getTreeMeanHeightDirection().equals(GetAllWoodlandsRequest.NumberDirection.MIN)) {
                     predicates.add(cb.greaterThanOrEqualTo(root.get("newRecord").get("meanHeight"), request.getTreeMeanHeight()));
                 } else {
                     predicates.add(cb.lessThanOrEqualTo(root.get("newRecord").get("meanHeight"), request.getTreeMeanHeight()));
@@ -503,18 +510,6 @@ public class WoodlandServiceImpl implements WoodlandService {
         Woodland woodland = woodlandRepository.findById(woodlandId)
                 .orElseThrow(() -> new WrongParamException(ResultEnum.WOODLAND_NOT_EXIST));
         return new WoodlandDTO(woodland, true, true);
-    }
-
-    /**
-     * 树木实体属性顺序
-     */
-    private static final Map<String, Integer> TREE_FIELD_ORDER_WEIGHT = new HashMap<>();
-    static {
-        TREE_FIELD_ORDER_WEIGHT.put("treeId", 1);
-        TREE_FIELD_ORDER_WEIGHT.put("species", 2);
-        TREE_FIELD_ORDER_WEIGHT.put("height", 3);
-        TREE_FIELD_ORDER_WEIGHT.put("dbh", 4);
-        TREE_FIELD_ORDER_WEIGHT.put("crownWidth", 5);
     }
 
     @Override

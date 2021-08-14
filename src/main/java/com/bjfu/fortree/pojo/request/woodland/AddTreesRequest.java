@@ -10,6 +10,7 @@ import java.util.List;
 
 /**
  * 为记录添加树木的请求
+ *
  * @author warthog
  */
 @Data
@@ -31,7 +32,7 @@ public class AddTreesRequest {
      * 树木内部类
      */
     @Data
-    public static class Tree{
+    public static class Tree {
         /**
          * 树的编号
          */

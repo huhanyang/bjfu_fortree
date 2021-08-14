@@ -1,8 +1,6 @@
 package com.bjfu.fortree.pojo.vo;
 
 import com.bjfu.fortree.enums.entity.WoodlandShapeEnum;
-import com.bjfu.fortree.pojo.dto.RecordDTO;
-import com.bjfu.fortree.pojo.dto.UserDTO;
 import com.bjfu.fortree.pojo.dto.WoodlandDTO;
 import com.bjfu.fortree.spatial.G2dPoint;
 import lombok.Data;
@@ -16,16 +14,6 @@ import java.util.stream.Collectors;
 
 @Data
 public class WoodlandVO {
-
-    public WoodlandVO(WoodlandDTO woodlandDTO) {
-        if(woodlandDTO != null) {
-            BeanUtils.copyProperties(woodlandDTO, this);
-            this.creator = Optional.ofNullable(woodlandDTO.getCreator()).map(UserVO::new).orElse(null);
-            this.records = Optional.ofNullable(woodlandDTO.getRecords())
-                    .map(recordDTOS -> recordDTOS.stream().map(RecordVO::new).collect(Collectors.toList()))
-                    .orElse(null);
-        }
-    }
 
     /**
      * 主键
@@ -83,9 +71,18 @@ public class WoodlandVO {
      * 附加信息(JSON)
      */
     private String addition;
-
     /**
      * 创建的记录
      */
     private List<RecordVO> records = new ArrayList<>();
+
+    public WoodlandVO(WoodlandDTO woodlandDTO) {
+        if (woodlandDTO != null) {
+            BeanUtils.copyProperties(woodlandDTO, this);
+            this.creator = Optional.ofNullable(woodlandDTO.getCreator()).map(UserVO::new).orElse(null);
+            this.records = Optional.ofNullable(woodlandDTO.getRecords())
+                    .map(recordDTOS -> recordDTOS.stream().map(RecordVO::new).collect(Collectors.toList()))
+                    .orElse(null);
+        }
+    }
 }

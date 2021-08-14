@@ -38,7 +38,7 @@ public class JwtUtil {
                     .withExpiresAt(expiresAt);
             map.forEach(builder::withClaim);
             return builder.sign(HMAC256_ALGORITHM);
-        } catch (JWTCreationException exception){
+        } catch (JWTCreationException exception) {
             log.error("token生成异常", exception);
             throw new BizException(ResultEnum.TOKEN_GENERATE_FAILED);
         }
@@ -50,7 +50,7 @@ public class JwtUtil {
                     .withIssuer(JWT_ISSUER)
                     .build();
             return verifier.verify(token).getClaims();
-        } catch (JWTVerificationException exception){
+        } catch (JWTVerificationException exception) {
             log.error("token认证失败", exception);
             throw new BizException(ResultEnum.TOKEN_WRONG);
         }

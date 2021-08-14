@@ -17,6 +17,7 @@ import java.security.NoSuchAlgorithmException;
 
 /**
  * minio配置类
+ *
  * @author warthog
  */
 @Configuration
@@ -37,18 +38,19 @@ public class MinioConfig {
 
     /**
      * 初始化或创建存储桶
+     *
      * @param minioClient minio客户端
      */
     private void initBuckets(MinioClient minioClient) throws IOException, InvalidKeyException, InvalidResponseException, InsufficientDataException, NoSuchAlgorithmException, ServerException, InternalException, XmlParserException, ErrorResponseException {
         BucketExistsArgs bucketExistsArgs = BucketExistsArgs.builder().bucket(EXCEL_BUCKET_NAME).build();
-        if(!minioClient.bucketExists(bucketExistsArgs)) {
+        if (!minioClient.bucketExists(bucketExistsArgs)) {
             MakeBucketArgs makeBucketArgs = MakeBucketArgs.builder()
                     .bucket(EXCEL_BUCKET_NAME)
                     .build();
             minioClient.makeBucket(makeBucketArgs);
         }
         bucketExistsArgs = BucketExistsArgs.builder().bucket(APPLY_EXCEL_BUCKET_NAME).build();
-        if(!minioClient.bucketExists(bucketExistsArgs)) {
+        if (!minioClient.bucketExists(bucketExistsArgs)) {
             MakeBucketArgs makeBucketArgs = MakeBucketArgs.builder()
                     .bucket(APPLY_EXCEL_BUCKET_NAME)
                     .build();

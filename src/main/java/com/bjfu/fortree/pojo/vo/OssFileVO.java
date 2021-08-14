@@ -9,12 +9,6 @@ import java.util.Date;
 @Data
 public class OssFileVO {
 
-    public OssFileVO(OssFileDTO ossFileDTO) {
-        if(ossFileDTO != null) {
-            BeanUtils.copyProperties(ossFileDTO, this);
-        }
-    }
-
     /**
      * 主键
      */
@@ -39,4 +33,9 @@ public class OssFileVO {
      * 文件下载URL
      */
     private String url;
+    public OssFileVO(OssFileDTO ossFileDTO) {
+        if (ossFileDTO != null) {
+            BeanUtils.copyProperties(ossFileDTO, this);
+        }
+    }
 }

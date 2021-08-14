@@ -8,10 +8,21 @@ import java.util.List;
 
 /**
  * 分页及单属性排序请求基类
+ *
  * @author warthog
  */
 @Data
 public abstract class BasePageAndSorterRequest {
+
+    /**
+     * 分页
+     */
+    @NotNull(message = "分页参数不能为空")
+    private Pagination pagination;
+    /**
+     * 排序
+     */
+    private List<Sorter> sorter;
 
     @Data
     public static class Pagination {
@@ -38,16 +49,6 @@ public abstract class BasePageAndSorterRequest {
          */
         private Sort.Direction order;
     }
-
-    /**
-     * 分页
-     */
-    @NotNull(message = "分页参数不能为空")
-    private Pagination pagination;
-    /**
-     * 排序
-     */
-    private List<Sorter> sorter;
 
 }
 

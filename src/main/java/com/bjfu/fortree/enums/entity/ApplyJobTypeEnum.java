@@ -6,6 +6,7 @@ import lombok.Getter;
 
 /**
  * 申请类型的枚举类
+ *
  * @author warthog
  */
 @Getter

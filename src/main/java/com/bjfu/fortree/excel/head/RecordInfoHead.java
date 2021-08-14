@@ -12,12 +12,6 @@ import java.util.Date;
  */
 @Data
 public class RecordInfoHead {
-    public RecordInfoHead() {}
-    public RecordInfoHead(Record record) {
-        BeanUtils.copyProperties(record, this);
-        this.creatorAccount = record.getCreator().getAccount();
-        this.creatorName = record.getCreator().getName();
-    }
     /**
      * 用户名
      */
@@ -58,4 +52,11 @@ public class RecordInfoHead {
      */
     @ExcelProperty("附加信息")
     private String addition;
+    public RecordInfoHead() {
+    }
+    public RecordInfoHead(Record record) {
+        BeanUtils.copyProperties(record, this);
+        this.creatorAccount = record.getCreator().getAccount();
+        this.creatorName = record.getCreator().getName();
+    }
 }

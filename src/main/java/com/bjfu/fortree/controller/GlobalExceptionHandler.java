@@ -1,7 +1,10 @@
 package com.bjfu.fortree.controller;
 
 import com.bjfu.fortree.enums.ResultEnum;
-import com.bjfu.fortree.exception.*;
+import com.bjfu.fortree.exception.ApprovedOperationException;
+import com.bjfu.fortree.exception.ForTreeException;
+import com.bjfu.fortree.exception.OssException;
+import com.bjfu.fortree.exception.SystemWrongException;
 import com.bjfu.fortree.pojo.BaseResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -15,6 +18,7 @@ import java.util.Objects;
 
 /**
  * 全局异常处理器
+ *
  * @author warthog
  */
 @Slf4j

@@ -7,14 +7,19 @@ import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.util.Optional;
 
 /**
  * 创建林地请求
+ *
  * @author warthog
  */
 @Data
 public class CreateWoodlandRequest {
+    /**
+     * 样地中心经纬度
+     */
+    @NotNull(message = "样地中心位置经维度不能为空")
+    G2dPoint position;
     /**
      * 样地名称
      */
@@ -27,11 +32,6 @@ public class CreateWoodlandRequest {
     @NotBlank(message = "样地地址不能为空")
     @Length(min = 1, max = 64, message = "样地地址长度1-32个字符")
     private String address;
-    /**
-     * 样地中心经纬度
-     */
-    @NotNull(message = "样地中心位置经维度不能为空")
-    G2dPoint position;
     /**
      * 国家
      */

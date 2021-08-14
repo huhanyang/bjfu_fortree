@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 
 /**
  * HTTP Response工具类
+ *
  * @author warthog
  */
 public class ResponseUtil {

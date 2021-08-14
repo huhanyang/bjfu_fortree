@@ -4,6 +4,7 @@ import lombok.Getter;
 
 /**
  * 用户权限枚举类
+ *
  * @author warthog
  */
 @Getter

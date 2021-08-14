@@ -14,6 +14,7 @@ import java.util.Comparator;
 
 /**
  * 删除林地中的记录
+ *
  * @author warthog
  */
 @Component
@@ -28,7 +29,7 @@ public class DeleteRecordInWoodlandOperation implements ApprovedOperation {
     public void execute(ApplyJob applyJob, User applyUser) {
         Long recordId = Long.parseLong(applyJob.getApplyParam());
         Record record = recordRepository.findById(recordId).orElse(null);
-        if(record!=null) {
+        if (record != null) {
             Woodland woodland = record.getWoodland();
             // 更新最新记录
             Record newRecord = woodland.getRecords()

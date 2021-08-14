@@ -12,22 +12,11 @@ import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 
 /**
  * 2维的点
+ *
  * @author warthog
  */
 @Data
 public class G2dPoint {
-
-    public G2dPoint() {}
-
-    public G2dPoint(double longitude, double latitude) {
-        this.longitude = longitude;
-        this.latitude = latitude;
-    }
-
-    public G2dPoint(Point<G2D> point) {
-        this.longitude = point.getPosition().getLon();
-        this.latitude = point.getPosition().getLat();
-    }
 
     /**
      * 经度
@@ -40,8 +29,20 @@ public class G2dPoint {
     @NotNull(message = "纬度不能为空")
     private double latitude;
 
+    public G2dPoint() {
+    }
+
+    public G2dPoint(double longitude, double latitude) {
+        this.longitude = longitude;
+        this.latitude = latitude;
+    }
+    public G2dPoint(Point<G2D> point) {
+        this.longitude = point.getPosition().getLon();
+        this.latitude = point.getPosition().getLat();
+    }
+
     public static Point<G2D> convertToGeom(G2dPoint g2dPoint) {
-        return point(WGS84, g(g2dPoint.getLongitude(),g2dPoint.getLatitude()));
+        return point(WGS84, g(g2dPoint.getLongitude(), g2dPoint.getLatitude()));
     }
 
     public Point<G2D> convertToGeom() {

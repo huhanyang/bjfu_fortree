@@ -10,6 +10,7 @@ import java.util.Date;
 
 /**
  * 申请实体类
+ *
  * @author warthog
  */
 @Getter
@@ -32,7 +33,7 @@ public class ApplyJob extends BaseEntity {
     /**
      * 申请参数
      */
-    @Column(length=512, nullable=false)
+    @Column(length = 512, nullable = false)
     private String applyParam;
     /**
      * 申请时上传的oss文件
@@ -59,7 +60,7 @@ public class ApplyJob extends BaseEntity {
     /**
      * 状态变更信息
      */
-    @Column(length=256)
+    @Column(length = 256)
     private String msg;
     /**
      * 状态变更时间

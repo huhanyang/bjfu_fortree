@@ -50,7 +50,7 @@ public class ExportWoodlandsInBoundsOperation implements ApprovedOperation {
         ExportWoodlandsInBoundsRequest request = JSONObject.parseObject(applyJob.getApplyParam(), ExportWoodlandsInBoundsRequest.class);
         List<Woodland> woodlands = woodlandRepository.findAllInBounds(request.getPolygon().convertToGeom());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try{
+        try {
             ExcelWriter excelWriter = EasyExcel.write(outputStream).autoCloseStream(false).build();
             // 写入林地信息sheet
             WriteSheet woodlandSheet = EasyExcel.writerSheet("林地信息").build();

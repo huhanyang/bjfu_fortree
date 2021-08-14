@@ -10,6 +10,7 @@ import java.util.List;
 
 /**
  * 撤销用户权限的请求
+ *
  * @author warthog
  */
 @Data

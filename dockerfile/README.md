@@ -39,7 +39,6 @@ $ docker-compose --version
 cker-compose version 1.24.1, build 4667896b
 ```
 
-
 ## 开发环境
 
 **构建**

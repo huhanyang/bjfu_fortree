@@ -30,17 +30,18 @@ public class JwtInterceptor implements HandlerInterceptor {
 
     /**
      * 进入controller前检查权限
-     * @param request http请求
+     *
+     * @param request  http请求
      * @param response http响应
-     * @param handler 处理器
+     * @param handler  处理器
      * @return 是否可以通过拦截器
      * @throws Exception 拦截器出现异常
      */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         boolean isHandlerMethod = handler.getClass().isAssignableFrom(HandlerMethod.class);
-        if(isHandlerMethod) {
-            HandlerMethod handlerMethod= ((HandlerMethod)handler);
+        if (isHandlerMethod) {
+            HandlerMethod handlerMethod = ((HandlerMethod) handler);
             // 获取接口上的访问权限控制注解
             boolean requireLogin = (handlerMethod.getMethodAnnotation(RequireLogin.class) != null);
             boolean requireUser = handlerMethod.getMethodAnnotation(RequireUser.class) != null;
@@ -48,7 +49,7 @@ public class JwtInterceptor implements HandlerInterceptor {
             requireLogin = requireLogin || requireUser || requireAdmin;
             // 尝试从header中取token 取不到就从http参数中取
             String token = Optional.ofNullable(request.getHeader("Authorization"))
-                    .filter(tokenInHeader -> tokenInHeader.length()>7)
+                    .filter(tokenInHeader -> tokenInHeader.length() > 7)
                     .map(tokenInHeader -> tokenInHeader.substring(7)) // 前缀"Bearer "清除
                     .orElse(request.getParameter("token"));
             // 验证token并获取用户信息
@@ -59,31 +60,31 @@ public class JwtInterceptor implements HandlerInterceptor {
                     .map(account -> userService.getInfoForContext(account))
                     .orElse(null);
             // 需要登录则检查是否登录以及是否被封号
-            if(requireLogin) {
-                if(userInfo == null) {
+            if (requireLogin) {
+                if (userInfo == null) {
                     ResponseUtil.writeResultToResponse(ResultEnum.NEED_TO_LOGIN, response);
                     return false;
                 }
-                if(UserStateEnum.BANNED.equals(userInfo.getState())){
+                if (UserStateEnum.BANNED.equals(userInfo.getState())) {
                     ResponseUtil.writeResultToResponse(ResultEnum.ACCOUNT_BANNED, response);
                     return false;
                 }
-                if(UserStateEnum.UNACTIVE.equals(userInfo.getState())){
+                if (UserStateEnum.UNACTIVE.equals(userInfo.getState())) {
                     ResponseUtil.writeResultToResponse(ResultEnum.ACCOUNT_UNACTIVE, response);
                     return false;
                 }
                 UserInfoContextUtil.setUserInfo(userInfo);
             }
             // 判断是否为用户
-            if(requireUser) {
-                if(!userInfo.getType().equals(UserTypeEnum.USER)) {
+            if (requireUser) {
+                if (!userInfo.getType().equals(UserTypeEnum.USER)) {
                     ResponseUtil.writeResultToResponse(ResultEnum.REQUIRE_USER, response);
                     return false;
                 }
             }
             // 判断是否为管理员
-            if(requireAdmin) {
-                if(!userInfo.getType().equals(UserTypeEnum.ADMIN)) {
+            if (requireAdmin) {
+                if (!userInfo.getType().equals(UserTypeEnum.ADMIN)) {
                     ResponseUtil.writeResultToResponse(ResultEnum.REQUIRE_ADMIN, response);
                     return false;
                 }
