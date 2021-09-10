@@ -63,6 +63,7 @@ public class AddTreesRequest {
          */
         private Double subbranchHeight;
 
+
         /**
          * 绝对坐标
          */

@@ -1,25 +1,43 @@
 package com.bjfu.fortree.controller;
 
+import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.ExcelWriter;
+import com.alibaba.excel.write.metadata.WriteSheet;
+import com.alibaba.excel.write.metadata.WriteTable;
 import com.bjfu.fortree.enums.ResultEnum;
+import com.bjfu.fortree.excel.head.AddTreesHead;
+import com.bjfu.fortree.excel.head.RecordInfoHead;
+import com.bjfu.fortree.excel.head.TreeInfoHead;
+import com.bjfu.fortree.excel.head.WoodlandInfoHead;
+import com.bjfu.fortree.exception.ExportExcelException;
 import com.bjfu.fortree.exception.SystemWrongException;
 import com.bjfu.fortree.pojo.BaseResult;
 import com.bjfu.fortree.pojo.dto.ApplyJobDTO;
 import com.bjfu.fortree.pojo.dto.TreeDTO;
 import com.bjfu.fortree.pojo.dto.UserDTO;
 import com.bjfu.fortree.pojo.dto.WoodlandDTO;
+import com.bjfu.fortree.pojo.entity.Tree;
 import com.bjfu.fortree.pojo.request.woodland.*;
 import com.bjfu.fortree.pojo.vo.ApplyJobVO;
 import com.bjfu.fortree.pojo.vo.TreeVO;
 import com.bjfu.fortree.pojo.vo.WoodlandVO;
 import com.bjfu.fortree.security.annotation.RequireLogin;
 import com.bjfu.fortree.service.WoodlandService;
+import com.bjfu.fortree.util.ResponseUtil;
 import com.bjfu.fortree.util.UserInfoContextUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,6 +46,7 @@ import java.util.stream.Collectors;
  *
  * @author warthog
  */
+@Slf4j
 @Validated
 @RestController
 @RequestMapping("/woodland")
@@ -70,6 +89,35 @@ public class WoodlandController {
                 .orElseThrow(() -> new SystemWrongException(ResultEnum.USER_INFO_CONTEXT_WRONG));
         ApplyJobDTO applyJobDTO = woodlandService.addTreesByExcel(userInfo.getAccount(), request);
         return new BaseResult<>(ResultEnum.SUCCESS, new ApplyJobVO(applyJobDTO));
+    }
+
+    @RequireLogin
+    @GetMapping("/getAddTreesExcelTemplate")
+    public void getAddTreesExcelTemplate(HttpServletResponse response) throws IOException {
+        try {
+            response.setContentType("application/vnd.ms-excel");
+            response.setCharacterEncoding("utf-8");
+            // 生成文件名
+            String fileName = URLEncoder.encode("上传树木模板", StandardCharsets.UTF_8)
+                    .replaceAll("\\+", "%20") + ".xlsx";
+            // 设置http响应头
+            response.setHeader("Content-disposition", "attachment;filename*=utf-8''" + fileName);
+            try {
+                ExcelWriter excelWriter = EasyExcel.write(response.getOutputStream()).autoCloseStream(false).build();
+                // 写入模板head
+                WriteSheet woodlandSheet = EasyExcel.writerSheet("请将树木填入此处").build();
+                WriteTable woodlandInfoTable = EasyExcel.writerTable(0).needHead(Boolean.TRUE).head(AddTreesHead.class).build();
+                excelWriter.write(Collections.emptyList(), woodlandSheet, woodlandInfoTable);
+                // 输出文件
+                excelWriter.finish();
+            } catch (Exception e) {
+                log.error("导出添加树木模板错误", e);
+                throw new SystemWrongException(ResultEnum.FILE_EXPORT_FAILED);
+            }
+        } catch (ExportExcelException e) {
+            // 重置response
+            ResponseUtil.writeResultToResponse(ResultEnum.FILE_EXPORT_FAILED, response);
+        }
     }
 
     @RequireLogin

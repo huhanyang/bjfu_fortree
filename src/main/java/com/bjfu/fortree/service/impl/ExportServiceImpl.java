@@ -148,7 +148,7 @@ public class ExportServiceImpl implements ExportService {
         // 判断是否拥有免审批权限
         if (authorityRepository.existsByUserAndType(user, AuthorityTypeEnum.EXPORT_ANY_INFO)) {
             // 生成状态为通过的申请实体
-            ApplyJob passedApply = ApplyJob.createPassedApply(user, ApplyJobTypeEnum.EXPORT_WOODLANDS_INFO, applyParam,
+            ApplyJob passedApply = ApplyJob.createPassedApply(user, ApplyJobTypeEnum.EXPORT_WOODLANDS_IN_BOUNDS, applyParam,
                     exportWoodlandsName);
             // 申请实体落库
             applyJobRepository.save(passedApply);
@@ -157,7 +157,7 @@ public class ExportServiceImpl implements ExportService {
             return new ApplyJobDTO(passedApply, false, false, false, false);
         } else {
             // 生成状态为申请中的申请实体
-            ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.EXPORT_WOODLANDS_INFO, applyParam,
+            ApplyJob apply = ApplyJob.createApply(user, ApplyJobTypeEnum.EXPORT_WOODLANDS_IN_BOUNDS, applyParam,
                     exportWoodlandsName);
             // 申请实体落库
             applyJobRepository.save(apply);

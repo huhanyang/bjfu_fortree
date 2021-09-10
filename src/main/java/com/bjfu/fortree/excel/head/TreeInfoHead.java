@@ -44,10 +44,15 @@ public class TreeInfoHead {
     private Double subbranchHeight;
 
     /**
-     * 绝对坐标
+     * 经度
      */
-    @ExcelProperty("绝对坐标")
-    private G2dPoint absolutePosition;
+    @ExcelProperty({"坐标", "经度"})
+    private double longitude;
+    /**
+     * 纬度
+     */
+    @ExcelProperty({"坐标", "纬度"})
+    private double latitude;
     /**
      * 附加信息(JSON)
      */
@@ -56,5 +61,7 @@ public class TreeInfoHead {
     public TreeInfoHead(Tree tree) {
         TreeDTO treeDTO = new TreeDTO(tree, false);
         BeanUtils.copyProperties(treeDTO, this);
+        this.longitude = treeDTO.getAbsolutePosition().getLongitude();
+        this.latitude = treeDTO.getAbsolutePosition().getLatitude();
     }
 }

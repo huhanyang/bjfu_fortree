@@ -3,6 +3,7 @@ package com.bjfu.fortree.excel.parser;
 import com.alibaba.excel.EasyExcel;
 import com.bjfu.fortree.excel.head.AddTreesHead;
 import com.bjfu.fortree.pojo.request.woodland.AddTreesRequest;
+import com.bjfu.fortree.spatial.G2dPoint;
 import org.springframework.beans.BeanUtils;
 
 import java.io.InputStream;
@@ -21,6 +22,8 @@ public class AddTreesExcelParser {
         return list.stream().map(addTreesHead -> {
             AddTreesRequest.Tree tree = new AddTreesRequest.Tree();
             BeanUtils.copyProperties(addTreesHead, tree);
+            G2dPoint g2dPoint = new G2dPoint(addTreesHead.getLongitude(), addTreesHead.getLatitude());
+            tree.setAbsolutePosition(g2dPoint);
             return tree;
         }).collect(Collectors.toList());
     }
