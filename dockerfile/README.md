@@ -82,5 +82,5 @@ clone源码`git clone https://gitee.com/tank59he/bjfu_fortree.git`
 ### 修改账号类型
 
 1. MySQL里执行`use fortree;`切换到fortree应用数据库
-2. 执行`update fortree.fortree_user set type = 1 where account = 注册的账户`
+2. 执行`update fortree.fortree_user set type = 1, state = 0 where account = 注册的账户`
 
