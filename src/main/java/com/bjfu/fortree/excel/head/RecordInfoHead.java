@@ -94,8 +94,10 @@ public class RecordInfoHead {
      */
     @ExcelProperty("附加信息")
     private String addition;
+
     public RecordInfoHead() {
     }
+
     public RecordInfoHead(Record record) {
         RecordDTO recordDTO = new RecordDTO(record, false, true, false);
         BeanUtils.copyProperties(recordDTO, this);

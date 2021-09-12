@@ -5,7 +5,6 @@ import com.bjfu.fortree.pojo.entity.Record;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
-import javax.persistence.Column;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -106,6 +105,7 @@ public class RecordDTO {
      * 此记录下的单个树记录
      */
     private List<TreeDTO> trees = new ArrayList<>();
+
     public RecordDTO(Record record, Boolean needWoodland, Boolean needCreator, Boolean needTrees) {
         if (record != null) {
             BeanUtils.copyProperties(record, this, "woodland", "creator", "trees");

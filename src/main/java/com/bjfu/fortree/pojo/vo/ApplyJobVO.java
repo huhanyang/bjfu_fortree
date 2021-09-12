@@ -60,6 +60,7 @@ public class ApplyJobVO {
      * 状态变更时间
      */
     private Date operateTime;
+
     public ApplyJobVO(ApplyJobDTO applyJobDTO) {
         if (applyJobDTO != null) {
             BeanUtils.copyProperties(applyJobDTO, this);

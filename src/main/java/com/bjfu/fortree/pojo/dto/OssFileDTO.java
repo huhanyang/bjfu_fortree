@@ -41,6 +41,7 @@ public class OssFileDTO {
      * 文件下载URL
      */
     private String url;
+
     public OssFileDTO(OssFile ossFile) {
         if (ossFile != null) {
             BeanUtils.copyProperties(ossFile, this);

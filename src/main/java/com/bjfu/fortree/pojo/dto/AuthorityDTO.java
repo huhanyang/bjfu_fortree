@@ -30,6 +30,7 @@ public class AuthorityDTO {
      * 权限类型
      */
     private AuthorityTypeEnum type;
+
     public AuthorityDTO(Authority authority, Boolean needUser) {
         if (authority != null) {
             BeanUtils.copyProperties(authority, this, "user");

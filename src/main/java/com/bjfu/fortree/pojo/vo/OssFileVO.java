@@ -33,6 +33,7 @@ public class OssFileVO {
      * 文件下载URL
      */
     private String url;
+
     public OssFileVO(OssFileDTO ossFileDTO) {
         if (ossFileDTO != null) {
             BeanUtils.copyProperties(ossFileDTO, this);

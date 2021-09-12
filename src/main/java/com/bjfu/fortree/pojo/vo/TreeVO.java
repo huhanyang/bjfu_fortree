@@ -60,6 +60,7 @@ public class TreeVO {
      * 附加信息(JSON)
      */
     private String addition;
+
     public TreeVO(TreeDTO treeDTO) {
         if (treeDTO != null) {
             BeanUtils.copyProperties(treeDTO, this);

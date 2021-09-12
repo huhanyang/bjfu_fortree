@@ -1,7 +1,6 @@
 package com.bjfu.fortree.excel.head;
 
 import com.alibaba.excel.annotation.ExcelProperty;
-import com.bjfu.fortree.spatial.G2dPoint;
 import lombok.Data;
 
 @Data

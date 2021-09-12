@@ -60,6 +60,7 @@ public class ApplyJobDTO {
      * 状态变更时间
      */
     private Date operateTime;
+
     public ApplyJobDTO(ApplyJob applyJob, Boolean needApplyUser, Boolean needUploadFile, Boolean needDownloadFile, Boolean needOperateUser) {
         if (applyJob != null) {
             BeanUtils.copyProperties(applyJob, this, "applyUser", "uploadFile", "downloadFile", "operateUser");

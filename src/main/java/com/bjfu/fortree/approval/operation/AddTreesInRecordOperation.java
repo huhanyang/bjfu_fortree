@@ -12,7 +12,6 @@ import com.bjfu.fortree.pojo.entity.User;
 import com.bjfu.fortree.pojo.request.woodland.AddTreesRequest;
 import com.bjfu.fortree.repository.woodland.RecordRepository;
 import com.bjfu.fortree.repository.woodland.TreeRepository;
-import com.bjfu.fortree.spatial.G2dPoint;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

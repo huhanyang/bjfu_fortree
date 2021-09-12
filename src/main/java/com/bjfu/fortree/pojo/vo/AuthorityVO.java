@@ -31,6 +31,7 @@ public class AuthorityVO {
      * 权限类型
      */
     private AuthorityTypeEnum type;
+
     public AuthorityVO(AuthorityDTO authorityDTO) {
         if (authorityDTO != null) {
             BeanUtils.copyProperties(authorityDTO, this);

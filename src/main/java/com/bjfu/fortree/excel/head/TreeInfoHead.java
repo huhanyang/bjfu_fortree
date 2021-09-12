@@ -3,7 +3,6 @@ package com.bjfu.fortree.excel.head;
 import com.alibaba.excel.annotation.ExcelProperty;
 import com.bjfu.fortree.pojo.dto.TreeDTO;
 import com.bjfu.fortree.pojo.entity.Tree;
-import com.bjfu.fortree.spatial.G2dPoint;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
@@ -58,6 +57,7 @@ public class TreeInfoHead {
      */
     @ExcelProperty("附加信息")
     private String addition;
+
     public TreeInfoHead(Tree tree) {
         TreeDTO treeDTO = new TreeDTO(tree, false);
         BeanUtils.copyProperties(treeDTO, this);

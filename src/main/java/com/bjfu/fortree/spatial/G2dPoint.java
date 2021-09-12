@@ -36,6 +36,7 @@ public class G2dPoint {
         this.longitude = longitude;
         this.latitude = latitude;
     }
+
     public G2dPoint(Point<G2D> point) {
         this.longitude = point.getPosition().getLon();
         this.latitude = point.getPosition().getLat();

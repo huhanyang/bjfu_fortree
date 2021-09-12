@@ -102,8 +102,10 @@ public class WoodlandInfoHead {
      */
     @ExcelProperty({"最新记录", "测量时间"})
     private Date measureTime;
+
     public WoodlandInfoHead() {
     }
+
     public WoodlandInfoHead(Woodland woodland) {
         BeanUtils.copyProperties(woodland, this);
         this.creatorAccount = woodland.getCreator().getAccount();
@@ -112,9 +114,7 @@ public class WoodlandInfoHead {
         this.latitude = woodland.getPosition().getPosition().getLat();
         this.shape = woodland.getShape().getMsg();
         woodland.getRecords().stream().findFirst()
-                .ifPresent(record -> {
-                    BeanUtils.copyProperties(record, this,
-                            "addition", "creatorAccount", "creatorName");
-                });
+                .ifPresent(record -> BeanUtils.copyProperties(record, this,
+                        "addition", "creatorAccount", "creatorName"));
     }
 }
