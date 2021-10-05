@@ -51,7 +51,7 @@ Nginx代理`docker run -itd --name bjfu_fortree_develop -p 80:80 bjfu_fortree_de
 
 Mysql8`docker run -p 3306:3306 -d --name mysql8 -e MYSQL_DATABASE=fortree -e MYSQL_ROOT_PASSWORD=my-secret-pw  mysql:8`
 
-Minio服务器`docker run -p 9000:9000 minio/minio server /data`
+Minio服务器`docker run -p 9000:9000 -d --name minio minio/minio server /data`
 
 运行后端在8080端口
 
